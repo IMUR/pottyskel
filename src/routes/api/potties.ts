@@ -11,7 +11,7 @@ interface Potty {
 	longitude: number;
 }
 
-let potties: Potty[] = [];
+const potties: Potty[] = [];
 
 // POST request to add a new potty
 export const POST: RequestHandler = async ({ request }) => {

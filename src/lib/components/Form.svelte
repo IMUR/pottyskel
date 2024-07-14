@@ -1,14 +1,24 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { writable } from 'svelte/store';
-  
-  // Define types for suggestions and selectedSuggestion
+
+  // Define types for suggestions and newPotty
   type Suggestion = {
     properties: { formatted: string };
     geometry: { coordinates: [number, number] };
   };
 
-  export let potties = writable<Suggestion[]>([]);
+  interface Potty {
+    pottyName: string;
+    pottyAddress: string;
+    pottyRule: string;
+    pottyNotes: string;
+    pottyType: string;
+    latitude: number;
+    longitude: number;
+  }
+
+  export let potties = writable<Potty[]>([]);
 
   let pottyName: string = '';
   let pottyAddress: string = '';
@@ -47,7 +57,7 @@
       return;
     }
 
-    const newPotty = {
+    const newPotty: Potty = {
       pottyName,
       pottyAddress,
       pottyRule,
@@ -93,7 +103,11 @@
     {#if showSuggestions}
       <ul>
         {#each suggestions as suggestion (suggestion.properties.formatted)}
-          <li role="button" tabindex="0" on:click={() => selectSuggestion(suggestion)} on:keypress={() => selectSuggestion(suggestion)}>{suggestion.properties.formatted}</li>
+          <li style="list-style:none">
+            <button on:click={() => selectSuggestion(suggestion)} on:keypress={() => selectSuggestion(suggestion)}>
+              {suggestion.properties.formatted}
+            </button>
+          </li>
         {/each}
       </ul>
     {/if}
