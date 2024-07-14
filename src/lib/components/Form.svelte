@@ -46,7 +46,8 @@
 
   function selectSuggestion(suggestion: Suggestion) {
     pottyName = suggestion.properties.name || '';
-    pottyAddress = suggestion.properties.formatted.replace(pottyName, '').trim();
+    // Remove the name and any leading ", " from the address
+    pottyAddress = suggestion.properties.formatted.replace(pottyName, '').replace(/^,\s*/, '');
     selectedSuggestion = suggestion;
     showSuggestions = false;
   }
