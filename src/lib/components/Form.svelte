@@ -4,7 +4,7 @@
 
   // Define types for suggestions and newPotty
   type Suggestion = {
-    properties: { formatted: string };
+    properties: { formatted: string; name: string };
     geometry: { coordinates: [number, number] };
   };
 
@@ -45,7 +45,8 @@
   }
 
   function selectSuggestion(suggestion: Suggestion) {
-    pottyAddress = suggestion.properties.formatted;
+    pottyName = suggestion.properties.name || '';
+    pottyAddress = suggestion.properties.formatted.replace(pottyName, '').trim();
     selectedSuggestion = suggestion;
     showSuggestions = false;
   }
