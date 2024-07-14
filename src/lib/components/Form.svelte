@@ -4,7 +4,13 @@
 
   // Define types for suggestions and newPotty
   type Suggestion = {
-    properties: { formatted: string; name: string };
+    properties: {
+      formatted: string;
+      name?: string;
+      street?: string;
+      housenumber?: string;
+      [key: string]: any;
+    };
     geometry: { coordinates: [number, number] };
   };
 
@@ -46,8 +52,11 @@
 
   function selectSuggestion(suggestion: Suggestion) {
     pottyName = suggestion.properties.name || '';
-    // Remove the name and any leading ", " from the address
-    pottyAddress = suggestion.properties.formatted.replace(pottyName, '').replace(/^,\s*/, '');
+    // Build a detailed address
+    pottyAddress = `${suggestion.properties.housenumber || ''} ${suggestion.properties.street || ''}`.trim();
+    if (!pottyAddress) {
+      pottyAddress = suggestion.properties.formatted.replace(pottyName, '').replace(/^,\s*/, '').trim();
+    }
     selectedSuggestion = suggestion;
     showSuggestions = false;
   }
