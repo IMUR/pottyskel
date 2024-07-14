@@ -9,6 +9,10 @@
       name?: string;
       street?: string;
       housenumber?: string;
+      city?: string;
+      state?: string;
+      postcode?: string;
+      country?: string;
       [key: string]: any;
     };
     geometry: { coordinates: [number, number] };
@@ -51,10 +55,26 @@
   }
 
   function selectSuggestion(suggestion: Suggestion) {
-    if (!pottyName) {
-      pottyName = suggestion.properties.name || '';
+    // Populate pottyName if it's empty
+    if (!pottyName && suggestion.properties.name) {
+      pottyName = suggestion.properties.name;
     }
-    pottyAddress = suggestion.properties.formatted;
+    
+    // Construct the full address
+    const {
+      housenumber = '',
+      street = '',
+      city = '',
+      state = '',
+      postcode = '',
+      country = ''
+    } = suggestion.properties;
+
+    const fullAddress = `${housenumber} ${street}, ${city}, ${state} ${postcode}, ${country}`.trim().replace(/^,|,$/g, '');
+
+    // Fallback to formatted address if full address is incomplete
+    pottyAddress = fullAddress || suggestion.properties.formatted;
+
     selectedSuggestion = suggestion;
     showSuggestions = false;
   }
