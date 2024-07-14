@@ -1,23 +1,29 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { writable } from 'svelte/store';
-  
-  export let potties = writable([]);
 
-  let pottyName = '';
-  let pottyAddress = '';
-  let pottyRule = '';
-  let pottyNotes = '';
-  let pottyType = '';
-  let suggestions = [];
-  let showSuggestions = false;
-  let selectedSuggestion = null;
-  let errorMessage = '';
+  // Define types for suggestions and selectedSuggestion
+  type Suggestion = {
+    properties: { formatted: string };
+    geometry: { coordinates: [number, number] };
+  };
+
+  export let potties = writable<Suggestion[]>([]);
+
+  let pottyName: string = '';
+  let pottyAddress: string = '';
+  let pottyRule: string = '';
+  let pottyNotes: string = '';
+  let pottyType: string = '';
+  let suggestions: Suggestion[] = [];
+  let showSuggestions: boolean = false;
+  let selectedSuggestion: Suggestion | null = null;
+  let errorMessage: string = '';
 
   const dispatch = createEventDispatcher();
 
-  async function handleInput(event) {
-    const value = event.target.value;
+  async function handleInput(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
     if (value.length > 2) {
       const response = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${value}&apiKey=52e42fd1727343ddb979120e8c9d473c`);
       const data = await response.json();
@@ -28,13 +34,13 @@
     }
   }
 
-  function selectSuggestion(suggestion) {
+  function selectSuggestion(suggestion: Suggestion) {
     pottyAddress = suggestion.properties.formatted;
     selectedSuggestion = suggestion;
     showSuggestions = false;
   }
 
-  async function handleSubmit(event) {
+  async function handleSubmit(event: Event) {
     event.preventDefault();
     if (!selectedSuggestion) {
       errorMessage = 'Please select an address from the suggestions.';
@@ -86,8 +92,8 @@
     <input id="pottyAddress" bind:value={pottyAddress} on:input={handleInput} required />
     {#if showSuggestions}
       <ul>
-        {#each suggestions as suggestion}
-          <li on:click={() => selectSuggestion(suggestion)}>{suggestion.properties.formatted}</li>
+        {#each suggestions as suggestion (suggestion.properties.formatted)}
+          <li role="button" tabindex="0" on:click={() => selectSuggestion(suggestion)} on:keypress={() => selectSuggestion(suggestion)}>{suggestion.properties.formatted}</li>
         {/each}
       </ul>
     {/if}
