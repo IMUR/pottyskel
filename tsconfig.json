@@ -1,16 +1,19 @@
 {
 	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
-		"allowJs": true,
-		"checkJs": true,
-		"esModuleInterop": true,
-		"forceConsistentCasingInFileNames": true,
-		"resolveJsonModule": true,
-		"skipLibCheck": true,
-		"sourceMap": true,
+		"target": "ES2019",
+		"module": "ESNext",
+		"moduleResolution": "node",
+		"lib": ["ES2019", "DOM"],
 		"strict": true,
-		"moduleResolution": "bundler"
-	}
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"types": ["svelte", "node", "@types/maplibre-gl"]
+	},
+
+"include": ["src/**/*.ts", "src/**/*.svelte"],
+  "exclude": ["node_modules"]
 	// Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
 	// except $lib which is handled by https://kit.svelte.dev/docs/configuration#files
 	//
