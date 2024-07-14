@@ -1,55 +1,39 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import maplibregl from 'maplibre-gl';
-    import 'maplibre-gl/dist/maplibre-gl.css';
-    import { writable } from 'svelte/store';
+  import { onMount } from 'svelte';
+  import maplibregl from 'maplibre-gl';
+  import { potties } from '$lib/utils/stores';
 
-    const map = writable(null);
+  let map;
+  let pottyList = [];
 
-    onMount(async () => {
-        const userLocation = await getUserLocation();
-        const mapInstance = new maplibregl.Map({
-            container: 'map',
-            style: `https://maps.geoapify.com/v1/styles/osm-carto/style.json?apiKey=52e42fd1727343ddb979120e8c9d473c`,
-            center: [userLocation.longitude, userLocation.latitude],
-            zoom: 13
-        });
-
-        mapInstance.on('load', () => {
-            fetchMarkers(mapInstance);
-        });
-
-        map.set(mapInstance);
+  onMount(() => {
+    // Initialize the map
+    map = new maplibregl.Map({
+      container: 'map', // container ID
+      style: 'https://maps.geoapify.com/v1/styles/osm-carto/style.json', // style URL
+      center: [0, 0], // starting position [lng, lat]
+      zoom: 2 // starting zoom
     });
 
-    async function getUserLocation() {
-        return new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(position => {
-                resolve({
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude
-                });
-            }, reject);
-        });
-    }
-
-    async function fetchMarkers(mapInstance) {
-        const response = await fetch('/api/potties');
-        const potties = await response.json();
-        
-        potties.forEach(potty => {
-            new maplibregl.Marker()
-                .setLngLat([potty.longitude, potty.latitude])
-                .setPopup(new maplibregl.Popup().setHTML(`<h3>${potty.pottyName}</h3><p>${potty.pottyAddress}</p><p>${potty.pottyRule}</p><p>${potty.pottyNotes}</p>`))
-                .addTo(mapInstance);
-        });
-    }
+    // Fetch potties data from the store
+    potties.subscribe(value => {
+      pottyList = value;
+      // Add markers to the map
+      pottyList.forEach(potty => {
+        new maplibregl.Marker()
+          .setLngLat([potty.longitude, potty.latitude])
+          .setPopup(new maplibregl.Popup().setHTML(`<h3>${potty.pottyName}</h3><p>${potty.pottyAddress}</p>`))
+          .addTo(map);
+      });
+    });
+  });
 </script>
 
-<div id="map" class="h-full w-full"></div>
+<div id="map" style="width: 100%; height: 500px;"></div>
+
 <style>
-    #map {
-        height: 100vh;
-        width: 100%;
-    }
+  #map {
+    width: 100%;
+    height: 500px;
+  }
 </style>
