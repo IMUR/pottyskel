@@ -3,8 +3,8 @@
   import maplibregl from 'maplibre-gl';
   import { potties } from '$lib/utils/stores';
 
-  let map;
-  let pottyList = [];
+  let map: maplibregl.Map;
+  let pottyList: any[] = [];
 
   onMount(() => {
     // Initialize the map

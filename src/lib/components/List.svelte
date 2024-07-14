@@ -1,13 +1,18 @@
-#### Step 4: Implement the List Component
-
-**File**: `src/lib/components/List.svelte`
-
-```svelte
 <script lang="ts">
   import { onMount } from 'svelte';
   import { potties } from '$lib/utils/stores';
 
-  let pottyList = [];
+  interface Potty {
+    pottyName: string;
+    pottyAddress: string;
+    pottyRule: string;
+    pottyNotes: string;
+    pottyType: string;
+    latitude: number;
+    longitude: number;
+  }
+
+  let pottyList: Potty[] = [];
 
   // Fetch potties data from the store
   onMount(() => {

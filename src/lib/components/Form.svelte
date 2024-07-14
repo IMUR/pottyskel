@@ -141,4 +141,9 @@
     <p>{errorMessage}</p>
   {/if}
 
-  <button type="submit">Submit</button
+  <button type="submit">Submit</button>
+</form>
+
+<style>
+  /* Add necessary styles */
+</style>
