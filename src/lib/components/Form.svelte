@@ -51,12 +51,10 @@
   }
 
   function selectSuggestion(suggestion: Suggestion) {
-    pottyName = suggestion.properties.name || '';
-    // Build a detailed address
-    pottyAddress = `${suggestion.properties.housenumber || ''} ${suggestion.properties.street || ''}`.trim();
-    if (!pottyAddress) {
-      pottyAddress = suggestion.properties.formatted.replace(pottyName, '').replace(/^,\s*/, '').trim();
+    if (!pottyName) {
+      pottyName = suggestion.properties.name || '';
     }
+    pottyAddress = suggestion.properties.formatted;
     selectedSuggestion = suggestion;
     showSuggestions = false;
   }
@@ -105,7 +103,7 @@
 <form on:submit|preventDefault={handleSubmit}>
   <div>
     <label for="pottyName">Potty Name</label>
-    <input id="pottyName" bind:value={pottyName} required />
+    <input id="pottyName" bind:value={pottyName} />
   </div>
 
   <div>
