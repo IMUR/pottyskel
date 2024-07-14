@@ -1,72 +1,143 @@
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
-    import { onMount } from 'svelte';
-    import { writable } from 'svelte/store';
-    
-    const dispatch = createEventDispatcher();
-    let pottyName = '';
-    let pottyAddress = '';
-    let pottyRule = '';
-    let pottyNotes = '';
-    let pottyType = '';
-    let latitude = 0;
-    let longitude = 0;
+  import { createEventDispatcher } from 'svelte';
+  import { writable } from 'svelte/store';
+  
+  export let potties = writable([]);
 
-    const rules = ['Door Code', 'Free Access', 'Ask Staff', 'Call or Text', 'Self Explanatory', 'Physical Key'];
-    const types = ['General', 'Supermarket', 'Hospital', 'Restaurant', 'Retail Store', 'Gas Station', 'Movie Theater', 'Coffee Shop', 'Public Restroom', 'Open Season', 'Mall', 'Hardware Store', 'Pharmacy', 'Parking Structure', 'Hotel'];
+  let pottyName = '';
+  let pottyAddress = '';
+  let pottyRule = '';
+  let pottyNotes = '';
+  let pottyType = '';
+  let suggestions = [];
+  let showSuggestions = false;
+  let selectedSuggestion = null;
+  let errorMessage = '';
 
-    onMount(() => {
-        // Initialize Geoapify Autocomplete here
-    });
+  const dispatch = createEventDispatcher();
 
-    const handleSubmit = async () => {
-        const geocodedAddress = await geocodeAddress(pottyAddress); // Use Geoapify API to geocode
-        latitude = geocodedAddress.lat;
-        longitude = geocodedAddress.lon;
+  async function handleInput(event) {
+    const value = event.target.value;
+    if (value.length > 2) {
+      const response = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${value}&apiKey=52e42fd1727343ddb979120e8c9d473c`);
+      const data = await response.json();
+      suggestions = data.features;
+      showSuggestions = true;
+    } else {
+      showSuggestions = false;
+    }
+  }
 
-        const newPotty = {
-            pottyName,
-            pottyAddress,
-            pottyRule,
-            pottyNotes,
-            pottyType,
-            latitude,
-            longitude
-        };
+  function selectSuggestion(suggestion) {
+    pottyAddress = suggestion.properties.formatted;
+    selectedSuggestion = suggestion;
+    showSuggestions = false;
+  }
 
-        const response = await fetch('/api/potties', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(newPotty)
-        });
+  async function handleSubmit(event) {
+    event.preventDefault();
+    if (!selectedSuggestion) {
+      errorMessage = 'Please select an address from the suggestions.';
+      return;
+    }
 
-        const result = await response.json();
-        dispatch('submit', result);
+    const newPotty = {
+      pottyName,
+      pottyAddress,
+      pottyRule,
+      pottyNotes,
+      pottyType,
+      latitude: selectedSuggestion.geometry.coordinates[1],
+      longitude: selectedSuggestion.geometry.coordinates[0]
     };
 
-    async function geocodeAddress(address: string) {
-        const response = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${address}&apiKey=52e42fd1727343ddb979120e8c9d473c`);
-        const data = await response.json();
-        return data.features[0].geometry;
+    const response = await fetch('/api/potties', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newPotty),
+    });
+
+    if (response.ok) {
+      potties.update(potties => [...potties, newPotty]);
+      clearForm();
+    } else {
+      errorMessage = 'Failed to save potty entry';
     }
+  }
+
+  function clearForm() {
+    pottyName = '';
+    pottyAddress = '';
+    pottyRule = '';
+    pottyNotes = '';
+    pottyType = '';
+    selectedSuggestion = null;
+  }
 </script>
 
 <form on:submit|preventDefault={handleSubmit}>
-    <input type="text" bind:value={pottyName} placeholder="Potty Name" required />
-    <input type="text" bind:value={pottyAddress} placeholder="Potty Address" required />
-    <select bind:value={pottyRule} required>
-        {#each rules as rule}
-            <option value={rule}>{rule}</option>
+  <div>
+    <label for="pottyName">Potty Name</label>
+    <input id="pottyName" bind:value={pottyName} required />
+  </div>
+
+  <div>
+    <label for="pottyAddress">Potty Address</label>
+    <input id="pottyAddress" bind:value={pottyAddress} on:input={handleInput} required />
+    {#if showSuggestions}
+      <ul>
+        {#each suggestions as suggestion}
+          <li on:click={() => selectSuggestion(suggestion)}>{suggestion.properties.formatted}</li>
         {/each}
+      </ul>
+    {/if}
+  </div>
+
+  <div>
+    <label for="pottyRule">Potty Rule</label>
+    <select id="pottyRule" bind:value={pottyRule} required>
+      <option value="Door Code">Door Code</option>
+      <option value="Free Access">Free Access</option>
+      <option value="Ask Staff">Ask Staff</option>
+      <option value="Call or Text">Call or Text</option>
+      <option value="Self Explanatory">Self Explanatory</option>
+      <option value="Physical Key">Physical Key</option>
     </select>
-    <textarea bind:value={pottyNotes} placeholder="Potty Notes" required></textarea>
-    <select bind:value={pottyType}>
-        <option value="">Select Type (Optional)</option>
-        {#each types as type}
-            <option value={type}>{type}</option>
-        {/each}
+  </div>
+
+  <div>
+    <label for="pottyNotes">Potty Notes</label>
+    <textarea id="pottyNotes" bind:value={pottyNotes} required></textarea>
+  </div>
+
+  <div>
+    <label for="pottyType">Potty Type</label>
+    <select id="pottyType" bind:value={pottyType}>
+      <option value="General">General</option>
+      <option value="Supermarket">Supermarket</option>
+      <option value="Hospital">Hospital</option>
+      <option value="Restaurant">Restaurant</option>
+      <option value="Retail Store">Retail Store</option>
+      <option value="Gas Station">Gas Station</option>
+      <option value="Movie Theater">Movie Theater</option>
+      <option value="Coffee Shop">Coffee Shop</option>
+      <option value="Public Restroom">Public Restroom</option>
+      <option value="Open Season">Open Season</option>
+      <option value="Mall">Mall</option>
+      <option value="Hardware Store">Hardware Store</option>
+      <option value="Pharmacy">Pharmacy</option>
+      <option value="Parking Structure">Parking Structure</option>
+      <option value="Hotel">Hotel</option>
     </select>
-    <button type="submit">Submit</button>
+  </div>
+
+  {#if errorMessage}
+    <p>{errorMessage}</p>
+  {/if}
+
+  <button type="submit">Submit</button>
 </form>
+
+<style>
+  /* Add necessary styles */
+</style>
