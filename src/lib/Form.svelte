@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { writable } from 'svelte/store';
-
+  
   // Define types for suggestions and selectedSuggestion
   type Suggestion = {
     properties: { formatted: string };
@@ -141,9 +141,4 @@
     <p>{errorMessage}</p>
   {/if}
 
-  <button type="submit">Submit</button>
-</form>
-
-<style>
-  /* Add necessary styles */
-</style>
+  <button type="submit">Submit</button
