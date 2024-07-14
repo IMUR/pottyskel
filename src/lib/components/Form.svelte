@@ -1,19 +1,12 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   import { writable } from 'svelte/store';
+  import { fetchSuggestions, submitPotty } from '$lib/utils/api';
 
   // Define types for suggestions and newPotty
   type Suggestion = {
     properties: {
       formatted: string;
-      name?: string;
-      street?: string;
-      housenumber?: string;
-      city?: string;
-      state?: string;
-      postcode?: string;
-      country?: string;
-      [key: string]: any;
     };
     geometry: { coordinates: [number, number] };
   };
@@ -40,14 +33,32 @@
   let selectedSuggestion: Suggestion | null = null;
   let errorMessage: string = '';
 
+  let userLocation: { latitude: number; longitude: number } | null = null;
+
   const dispatch = createEventDispatcher();
+
+  onMount(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          userLocation = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          };
+        },
+        (error) => {
+          console.error("Error getting user location:", error);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  });
 
   async function handleInput(event: Event) {
     const value = (event.target as HTMLInputElement).value;
-    if (value.length > 2) {
-      const response = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${value}&apiKey=52e42fd1727343ddb979120e8c9d473c`);
-      const data = await response.json();
-      suggestions = data.features;
+    if (value.length > 2 && userLocation) {
+      suggestions = await fetchSuggestions(value, userLocation);
       showSuggestions = true;
     } else {
       showSuggestions = false;
@@ -55,26 +66,7 @@
   }
 
   function selectSuggestion(suggestion: Suggestion) {
-    // Populate pottyName if it's empty
-    if (!pottyName && suggestion.properties.name) {
-      pottyName = suggestion.properties.name;
-    }
-    
-    // Construct the full address
-    const {
-      housenumber = '',
-      street = '',
-      city = '',
-      state = '',
-      postcode = '',
-      country = ''
-    } = suggestion.properties;
-
-    const fullAddress = `${housenumber} ${street}, ${city}, ${state} ${postcode}, ${country}`.trim().replace(/^,|,$/g, '');
-
-    // Fallback to formatted address if full address is incomplete
-    pottyAddress = fullAddress || suggestion.properties.formatted;
-
+    pottyAddress = suggestion.properties.formatted;
     selectedSuggestion = suggestion;
     showSuggestions = false;
   }
@@ -96,11 +88,7 @@
       longitude: selectedSuggestion.geometry.coordinates[0]
     };
 
-    const response = await fetch('/api/potties', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newPotty),
-    });
+    const response = await submitPotty(newPotty);
 
     if (response.ok) {
       potties.update(potties => [...potties, newPotty]);
