@@ -37,7 +37,6 @@
 </script>
 
 <form on:submit={handleSubmit}>
-    <!-- Other form elements -->
     <input type="text" bind:value={$pottyName} placeholder="Potty Name" required />
     <input type="text" bind:value={$pottyAddress} placeholder="Potty Address" on:input={handleInput} required />
     <select bind:value={$pottyRule} required>

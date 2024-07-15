@@ -17,8 +17,8 @@ export async function fetchGeolocation(): Promise<UserLocation> {
 	const response = await fetch(`https://api.geoapify.com/v1/ipinfo?apiKey=${API_KEY}`);
 	const data = await response.json();
 	return {
-		latitude: data.location.latitude,
-		longitude: data.location.longitude
+		latitude: data.location.lat,
+		longitude: data.location.lon
 	};
 }
 
