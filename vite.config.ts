@@ -5,8 +5,5 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export default defineConfig({
-	plugins: [sveltekit()],
-	server: {
-		port: 3000
-	}
+    plugins: [sveltekit()],
 });

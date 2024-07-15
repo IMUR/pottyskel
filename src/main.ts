@@ -1,19 +1,7 @@
-import { start } from './routes/+page.svelte';
+import App from './App.svelte';
 
-// Register the service worker
-if ('serviceWorker' in navigator) {
-	window.addEventListener('load', () => {
-		navigator.serviceWorker.register('/service-worker.js').then(
-			(registration) => {
-				console.log('ServiceWorker registration successful with scope: ', registration.scope);
-			},
-			(err) => {
-				console.log('ServiceWorker registration failed: ', err);
-			}
-		);
-	});
-}
-
-start({
+const app = new App({
 	target: document.body
 });
+
+export default app;
