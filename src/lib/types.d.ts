@@ -1,3 +1,13 @@
+export interface Suggestion {
+	properties: {
+		formatted: string;
+	};
+	geometry: {
+		type: string;
+		coordinates: [number, number];
+	};
+}
+
 export interface Potty {
 	pottyName: string;
 	pottyAddress: string;
@@ -6,13 +16,4 @@ export interface Potty {
 	pottyType: string;
 	latitude: number;
 	longitude: number;
-}
-
-export interface Suggestion {
-	properties: {
-		formatted: string;
-	};
-	geometry: {
-		coordinates: [number, number];
-	};
 }

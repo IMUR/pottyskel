@@ -1,18 +1,24 @@
+import { API_KEY } from '$lib/constants';
 import type { Suggestion, Potty } from '$lib/types';
 
-const API_KEY = '52e42fd1727343ddb979120e8c9d473c';
-
-interface UserLocation {
-	latitude: number;
-	longitude: number;
-}
-
-export async function fetchSuggestions(value: string, userLocation: UserLocation) {
+export async function fetchSuggestions(
+	value: string,
+	latitude: number,
+	longitude: number
+): Promise<Suggestion[]> {
 	const response = await fetch(
-		`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(value)}&filter=circle:${userLocation.longitude},${userLocation.latitude},8000&bias=proximity:${userLocation.longitude},${userLocation.latitude}&apiKey=${API_KEY}`
+		`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(value)}&filter=circle:${longitude},${latitude},8000&bias=proximity:${longitude},${latitude}&apiKey=${API_KEY}`
 	);
 	const data = await response.json();
-	return data.features as Suggestion[];
+	return data.features.map((feature: any) => ({
+		properties: {
+			formatted: feature.properties.formatted
+		},
+		geometry: {
+			type: feature.geometry.type,
+			coordinates: feature.geometry.coordinates
+		}
+	}));
 }
 
 export async function submitPotty(newPotty: Potty) {

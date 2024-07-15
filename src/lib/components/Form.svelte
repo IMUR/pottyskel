@@ -1,158 +1,79 @@
 <script lang="ts">
-  import { writable } from 'svelte/store';
-  import { fetchSuggestions, submitPotty } from '$lib/utils/api';
+    import { writable } from 'svelte/store';
+    import { fetchSuggestions, submitPotty } from '$lib/utils/api';
+    import { potties } from '$lib/utils/stores';
+    import type { Suggestion } from '$lib/types';
 
-  type Suggestion = {
-    properties: {
-      formatted: string;
-    };
-    geometry: { coordinates: [number, number] };
-  };
+    let pottyName = '';
+    let pottyAddress = '';
+    let pottyRule = '';
+    let pottyNotes = '';
+    let pottyType = '';
+    let suggestions = writable<Suggestion[]>([]);
+    let latitude = 0; // Set initial latitude
+    let longitude = 0; // Set initial longitude
 
-  interface Potty {
-    pottyName: string;
-    pottyAddress: string;
-    pottyRule: string;
-    pottyNotes: string;
-    pottyType: string;
-    latitude: number;
-    longitude: number;
-  }
+    async function handleInput(event: Event) {
+        const target = event.target as HTMLInputElement;
+        pottyAddress = target.value;
 
-  export let potties = writable<Potty[]>([]);
-
-  let pottyName: string = '';
-  let pottyAddress: string = '';
-  let pottyRule: string = '';
-  let pottyNotes: string = '';
-  let pottyType: string = '';
-  let suggestions: Suggestion[] = [];
-  let showSuggestions: boolean = false;
-  let selectedSuggestion: Suggestion | null = null;
-  let errorMessage: string = '';
-
-  const userLocation = { latitude: 34.02769842014328, longitude: -118.48420946044928 };
-
-  async function handleInput(event: Event) {
-    const value = (event.target as HTMLInputElement).value;
-    if (value.length > 2) {
-      suggestions = await fetchSuggestions(value, userLocation);
-      showSuggestions = true;
-    } else {
-      showSuggestions = false;
-    }
-  }
-
-  function selectSuggestion(suggestion: Suggestion) {
-    pottyAddress = suggestion.properties.formatted;
-    selectedSuggestion = suggestion;
-    showSuggestions = false;
-  }
-
-  async function handleSubmit(event: Event) {
-    event.preventDefault();
-    if (!selectedSuggestion) {
-      errorMessage = 'Please select an address from the suggestions.';
-      return;
+        if (pottyAddress.length > 2) {
+            const fetchedSuggestions = await fetchSuggestions(pottyAddress, latitude, longitude);
+            suggestions.set(fetchedSuggestions);
+        } else {
+            suggestions.set([]);
+        }
     }
 
-    const newPotty: Potty = {
-      pottyName,
-      pottyAddress,
-      pottyRule,
-      pottyNotes,
-      pottyType,
-      latitude: selectedSuggestion.geometry.coordinates[1],
-      longitude: selectedSuggestion.geometry.coordinates[0]
-    };
-
-    const response = await submitPotty(newPotty);
-
-    if (response.ok) {
-      potties.update(potties => [...potties, newPotty]);
-      clearForm();
-    } else {
-      errorMessage = 'Failed to save potty entry';
+    function handleSelect(suggestion: Suggestion) {
+        pottyAddress = suggestion.properties.formatted;
+        suggestions.set([]);
     }
-  }
 
-  function clearForm() {
-    pottyName = '';
-    pottyAddress = '';
-    pottyRule = '';
-    pottyNotes = '';
-    pottyType = '';
-    selectedSuggestion = null;
-  }
+    async function handleSubmit(event: Event) {
+        event.preventDefault();
+        const newPotty = {
+            pottyName,
+            pottyAddress,
+            pottyRule,
+            pottyNotes,
+            pottyType,
+            latitude,
+            longitude
+        };
+        const response = await submitPotty(newPotty);
+        if (response.ok) {
+            const result = await response.json();
+            potties.update(current => [...current, result.potty]);
+        } else {
+            console.error('Failed to submit potty', response);
+        }
+    }
 </script>
 
 <form on:submit|preventDefault={handleSubmit}>
-  <div>
-    <label for="pottyName">Potty Name</label>
-    <input id="pottyName" bind:value={pottyName} />
-  </div>
+    <input type="text" bind:value={pottyName} placeholder="Potty Name" required />
+    <input type="text" bind:value={pottyAddress} on:input={handleInput} placeholder="Potty Address" required />
 
-  <div>
-    <label for="pottyAddress">Potty Address</label>
-    <input id="pottyAddress" bind:value={pottyAddress} on:input={handleInput} required />
-    {#if showSuggestions}
-      <ul>
-        {#each suggestions as suggestion (suggestion.properties.formatted)}
-          <li style="list-style:none">
-            <button type="button" on:click={() => selectSuggestion(suggestion)} on:keypress={() => selectSuggestion(suggestion)}>
-              {suggestion.properties.formatted}
-            </button>
-          </li>
-        {/each}
-      </ul>
+    {#if $suggestions.length > 0}
+        <ul>
+            {#each $suggestions as suggestion}
+                <li>
+                    <button type="button" on:click={() => handleSelect(suggestion)}>
+                        {suggestion.properties.formatted}
+                    </button>
+                </li>
+            {/each}
+        </ul>
     {/if}
-  </div>
 
-  <div>
-    <label for="pottyRule">Potty Rule</label>
-    <select id="pottyRule" bind:value={pottyRule} required>
-      <option value="Door Code">Door Code</option>
-      <option value="Free Access">Free Access</option>
-      <option value="Ask Staff">Ask Staff</option>
-      <option value="Call or Text">Call or Text</option>
-      <option value="Self Explanatory">Self Explanatory</option>
-      <option value="Physical Key">Physical Key</option>
+    <input type="text" bind:value={pottyRule} placeholder="Potty Rule" />
+    <textarea bind:value={pottyNotes} placeholder="Potty Notes"></textarea>
+    <select bind:value={pottyType}>
+        <option value="" disabled selected>Select Potty Type</option>
+        <option value="public">Public</option>
+        <option value="private">Private</option>
     </select>
-  </div>
 
-  <div>
-    <label for="pottyNotes">Potty Notes</label>
-    <textarea id="pottyNotes" bind:value={pottyNotes} required></textarea>
-  </div>
-
-  <div>
-    <label for="pottyType">Potty Type</label>
-    <select id="pottyType" bind:value={pottyType}>
-      <option value="General">General</option>
-      <option value="Supermarket">Supermarket</option>
-      <option value="Hospital">Hospital</option>
-      <option value="Restaurant">Restaurant</option>
-      <option value="Retail Store">Retail Store</option>
-      <option value="Gas Station">Gas Station</option>
-      <option value="Movie Theater">Movie Theater</option>
-      <option value="Coffee Shop">Coffee Shop</option>
-      <option value="Public Restroom">Public Restroom</option>
-      <option value="Open Season">Open Season</option>
-      <option value="Mall">Mall</option>
-      <option value="Hardware Store">Hardware Store</option>
-      <option value="Pharmacy">Pharmacy</option>
-      <option value="Parking Structure">Parking Structure</option>
-      <option value="Hotel">Hotel</option>
-    </select>
-  </div>
-
-  {#if errorMessage}
-    <p>{errorMessage}</p>
-  {/if}
-
-  <button type="submit">Submit</button>
+    <button type="submit">Submit</button>
 </form>
-
-<style>
-  /* Add necessary styles */
-</style>
