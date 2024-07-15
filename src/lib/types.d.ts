@@ -8,7 +8,7 @@ export interface Potty {
 	pottyAddress: string;
 	pottyRule: string;
 	pottyNotes: string;
-	pottyType?: string;
+	pottyType: string;
 	latitude: number;
 	longitude: number;
 }
@@ -16,10 +16,5 @@ export interface Potty {
 export interface Suggestion {
 	properties: {
 		formatted: string;
-		// Add other properties as needed
-	};
-	geometry: {
-		type: string;
-		coordinates: [number, number];
 	};
 }

@@ -6,6 +6,9 @@ export async function fetchSuggestions(
 	value: string,
 	userLocation: UserLocation
 ): Promise<Suggestion[]> {
+	if (!API_KEY) {
+		throw new Error('Geoapify API key is missing');
+	}
 	const response = await fetch(
 		`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(value)}&filter=circle:${userLocation.longitude},${userLocation.latitude},8000&bias=proximity:${userLocation.longitude},${userLocation.latitude}&apiKey=${API_KEY}`
 	);
@@ -13,12 +16,15 @@ export async function fetchSuggestions(
 	return data.features;
 }
 
-export async function fetchGeolocation(): Promise<UserLocation> {
+export async function fetchGeolocation(ip: string): Promise<UserLocation> {
+	if (!API_KEY) {
+		throw new Error('Geoapify API key is missing');
+	}
 	const response = await fetch(`https://api.geoapify.com/v1/ipinfo?apiKey=${API_KEY}`);
 	const data = await response.json();
 	return {
-		latitude: data.location.lat,
-		longitude: data.location.lon
+		latitude: data.location.latitude,
+		longitude: data.location.longitude
 	};
 }
 

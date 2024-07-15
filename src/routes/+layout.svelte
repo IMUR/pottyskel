@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<!-- <script context="module" lang="ts">
   if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
     navigator.serviceWorker.register('/service-worker.js')
       .then(() => {
@@ -11,3 +11,4 @@
 </script>
 
 <slot />
+ -->

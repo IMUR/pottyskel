@@ -1,19 +1,16 @@
-import adapter from '@sveltejs/adapter-node';
-import { sveltePreprocess } from 'svelte-preprocess';
+import adapter from '@sveltejs/adapter-static';
+import { vitePreprocess } from '@sveltejs/kit/vite';
 
 const config = {
+	preprocess: vitePreprocess(),
+
 	kit: {
 		adapter: adapter(),
-		alias: {
-			$lib: 'src/lib'
-		}
-	},
-	vitePlugin: {
-		inspector: true
-	},
-	preprocess: sveltePreprocess({
-		typescript: true
-	})
+		paths: {
+			base: ''
+		},
+		target: '#svelte'
+	}
 };
 
 export default config;
