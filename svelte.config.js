@@ -8,9 +8,6 @@ const config = {
 			$lib: 'src/lib'
 		}
 	},
-	vitePlugin: {
-		inspector: true
-	},
 	preprocess: preprocess({
 		typescript: true
 	})

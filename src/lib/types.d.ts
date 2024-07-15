@@ -1,3 +1,8 @@
+export interface UserLocation {
+	latitude: number;
+	longitude: number;
+}
+
 export interface Suggestion {
 	properties: {
 		formatted: string;
@@ -13,7 +18,7 @@ export interface Potty {
 	pottyAddress: string;
 	pottyRule: string;
 	pottyNotes: string;
-	pottyType: string;
+	pottyType?: string;
 	latitude: number;
 	longitude: number;
 }
