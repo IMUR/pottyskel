@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
-  import { writable } from 'svelte/store';
   import { fetchSuggestions, submitPotty } from '$lib/utils/api';
+  import { potties } from '$lib/utils/potties';
 
   // Define types for suggestions and newPotty
   type Suggestion = {
@@ -20,8 +20,6 @@
     latitude: number;
     longitude: number;
   }
-
-  export let potties = writable<Potty[]>([]);
 
   let pottyName: string = '';
   let pottyAddress: string = '';

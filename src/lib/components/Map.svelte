@@ -1,28 +1,27 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import maplibregl from 'maplibre-gl';
-  import { potties } from '$lib/utils/stores';
+  import { potties } from '$lib/utils/potties';
 
-  let map: maplibregl.Map;
-  let pottyList = [];
+  let map: any;
+  let pottyList: any[] = [];
 
   onMount(() => {
     // Initialize the map
     map = new maplibregl.Map({
       container: 'map', // container ID
-      style: 'https://maps.geoapify.com/v1/styles/osm-carto/style.json?apiKey=52e42fd1727343ddb979120e8c9d473c', // style URL with API key
+      style: `https://maps.geoapify.com/v1/styles/osm-carto/style.json?apiKey=52e42fd1727343ddb979120e8c9d473c`, // style URL
       center: [0, 0], // starting position [lng, lat]
       zoom: 2 // starting zoom
     });
 
     // Fetch potties data from the store
-    potties.subscribe(value => {
+    potties.subscribe((value: any) => {
       pottyList = value;
       // Add markers to the map
-      pottyList.forEach(potty => {
-        const coordinates: [number, number] = [potty.longitude, potty.latitude];
+      pottyList.forEach((potty: any) => {
         new maplibregl.Marker()
-          .setLngLat(coordinates)
+          .setLngLat([potty.longitude, potty.latitude])
           .setPopup(new maplibregl.Popup().setHTML(`<h3>${potty.pottyName}</h3><p>${potty.pottyAddress}</p>`))
           .addTo(map);
       });
