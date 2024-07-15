@@ -1,9 +1,7 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { fetchSuggestions, submitPotty } from '$lib/utils/api';
   import { writable } from 'svelte/store';
-  import { fetchSuggestions, submitPotty } from '$lib/utils/api'; // <-- Add this line
 
-  // Define types for suggestions and newPotty
   type Suggestion = {
     properties: {
       formatted: string;
@@ -33,12 +31,11 @@
   let selectedSuggestion: Suggestion | null = null;
   let errorMessage: string = '';
 
-  const dispatch = createEventDispatcher();
+  const userLocation = { latitude: 34.02769842014328, longitude: -118.48420946044928 };
 
   async function handleInput(event: Event) {
     const value = (event.target as HTMLInputElement).value;
     if (value.length > 2) {
-      const userLocation = { latitude: 34.03196633208884, longitude: -118.47820131225592 }; // Replace with actual user location
       suggestions = await fetchSuggestions(value, userLocation);
       showSuggestions = true;
     } else {

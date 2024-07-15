@@ -1,29 +1,33 @@
-module.exports = {
-	parser: '@typescript-eslint/parser',
-	extends: [
-		'eslint:recommended',
-		'plugin:@typescript-eslint/recommended',
-		'plugin:svelte/recommended',
-		'prettier'
-	],
-	parserOptions: {
-		sourceType: 'module',
-		ecmaVersion: 2020,
-		project: './tsconfig.json'
-	},
-	settings: {
-		'svelte3/typescript': require('typescript'),
-		'svelte3/ignore-styles': () => true
-	},
-	overrides: [
-		{
-			files: ['*.svelte'],
-			processor: 'svelte3/svelte3'
+import js from '@eslint/js';
+import ts from 'typescript-eslint';
+import svelte from 'eslint-plugin-svelte';
+import prettier from 'eslint-config-prettier';
+import globals from 'globals';
+
+/** @type {import('eslint').Linter.FlatConfig[]} */
+export default [
+	js.configs.recommended,
+	...ts.configs.recommended,
+	...svelte.configs['flat/recommended'],
+	prettier,
+	...svelte.configs['flat/prettier'],
+	{
+		languageOptions: {
+			globals: {
+				...globals.browser,
+				...globals.node
+			}
 		}
-	],
-	rules: {
-		'@typescript-eslint/no-unused-vars': ['error'],
-		'@typescript-eslint/no-explicit-any': 'off',
-		'svelte/no-unused-vars': 'off'
+	},
+	{
+		files: ['**/*.svelte'],
+		languageOptions: {
+			parserOptions: {
+				parser: ts.parser
+			}
+		}
+	},
+	{
+		ignores: ['build/', '.svelte-kit/', 'dist/']
 	}
-};
+];

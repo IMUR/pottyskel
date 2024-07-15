@@ -1,9 +1,10 @@
 import express from 'express';
-import { promises as fs } from 'fs';
 import path from 'path';
+import { promises as fs } from 'fs';
 
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
+const filePath = path.join(__dirname, 'static', 'PottyList.json');
 
 interface Potty {
 	pottyName: string;
@@ -15,40 +16,22 @@ interface Potty {
 	longitude: number;
 }
 
-const filePath = path.join('static', 'PottyList.json');
-
-const readPotties = async (): Promise<Potty[]> => {
-	const data = await fs.readFile(filePath, 'utf-8');
-	return JSON.parse(data) as Potty[];
-};
-
-const writePotties = async (potties: Potty[]): Promise<void> => {
-	await fs.writeFile(filePath, JSON.stringify(potties, null, 2), 'utf-8');
-};
-
 app.use(express.json());
 
 app.get('/api/potties', async (req, res) => {
-	try {
-		const potties = await readPotties();
-		res.json(potties);
-	} catch (error) {
-		res.status(500).json({ error: 'Failed to read potties' });
-	}
+	const data = await fs.readFile(filePath, 'utf-8');
+	res.json(JSON.parse(data));
 });
 
 app.post('/api/potties', async (req, res) => {
-	try {
-		const newPotty: Potty = req.body;
-		const potties = await readPotties();
-		potties.push(newPotty);
-		await writePotties(potties);
-		res.json({ status: 'success', potty: newPotty });
-	} catch (error) {
-		res.status(500).json({ error: 'Failed to save potty' });
-	}
+	const newPotty: Potty = req.body;
+	const data = await fs.readFile(filePath, 'utf-8');
+	const potties: Potty[] = JSON.parse(data);
+	potties.push(newPotty);
+	await fs.writeFile(filePath, JSON.stringify(potties, null, 2), 'utf-8');
+	res.status(201).json(newPotty);
 });
 
-app.listen(port, () => {
-	console.log(`Server is running at http://localhost:${port}`);
+app.listen(PORT, () => {
+	console.log(`Server is running on port ${PORT}`);
 });
