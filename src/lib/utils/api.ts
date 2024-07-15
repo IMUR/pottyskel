@@ -1,4 +1,4 @@
-import type { UserLocation, Potty } from '$lib/types';
+import type { Potty, UserLocation } from '$lib/types';
 
 const API_KEY = '52e42fd1727343ddb979120e8c9d473c';
 
@@ -18,5 +18,5 @@ export async function submitPotty(newPotty: Potty) {
 		},
 		body: JSON.stringify(newPotty)
 	});
-	return response;
+	return response.json();
 }
