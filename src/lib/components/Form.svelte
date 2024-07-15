@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
   import { fetchSuggestions, submitPotty } from '$lib/utils/api';
-  import { potties } from '$lib/utils/potties';
+  import { potties } from '$lib/utils/stores';
 
   type Suggestion = {
     properties: {
