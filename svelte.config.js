@@ -1,5 +1,5 @@
 import adapter from '@sveltejs/adapter-node';
-import preprocess from 'svelte-preprocess';
+import { sveltePreprocess } from 'svelte-preprocess';
 
 const config = {
 	kit: {
@@ -8,7 +8,10 @@ const config = {
 			$lib: 'src/lib'
 		}
 	},
-	preprocess: preprocess({
+	vitePlugin: {
+		inspector: true
+	},
+	preprocess: sveltePreprocess({
 		typescript: true
 	})
 };

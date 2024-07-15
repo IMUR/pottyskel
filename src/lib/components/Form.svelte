@@ -1,67 +1,70 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import { get } from 'svelte/store';
-    import { suggestions, submitPotty } from '$lib/utils/api';
-    import type { Suggestion } from '$lib/types';
+    import { writable } from 'svelte/store';
+    import { fetchSuggestions, fetchGeolocation, submitPotty } from '$lib/utils/api';
+    import type { Suggestion, UserLocation } from '$lib/types';
 
-    let pottyName: string = '';
-    let pottyAddress: string = '';
-    let pottyRule: string = '';
-    let pottyNotes: string = '';
-    let pottyType: string = '';
-    let addressSuggestions: Suggestion[] = [];
+    const pottyName = writable('');
+    const pottyAddress = writable('');
+    const pottyRule = writable('');
+    const pottyNotes = writable('');
+    const pottyType = writable('');
+    const suggestions = writable<Suggestion[]>([]);
+    let userLocation: UserLocation;
 
-    async function handleAddressInput(event: Event) {
-        const input = (event.target as HTMLInputElement).value;
-        addressSuggestions = await suggestions(input);
-    }
+    fetchGeolocation().then(location => {
+        userLocation = location;
+    });
 
-    async function handleSubmit(event: Event) {
+    const handleInput = async (event: Event) => {
+        const target = event.target as HTMLInputElement;
+        const value = target.value;
+        suggestions.set(await fetchSuggestions(value, userLocation));
+    };
+
+    const handleSubmit = async (event: Event) => {
         event.preventDefault();
-        await submitPotty({ pottyName, pottyAddress, pottyRule, pottyNotes, pottyType });
-    }
-
-    function handleSuggestionClick(suggestion: Suggestion) {
-        pottyAddress = suggestion.properties.formatted;
-        addressSuggestions = [];
-    }
+        const newPotty = {
+            pottyName: $pottyName,
+            pottyAddress: $pottyAddress,
+            pottyRule: $pottyRule,
+            pottyNotes: $pottyNotes,
+            pottyType: $pottyType,
+            latitude: userLocation.latitude,
+            longitude: userLocation.longitude
+        };
+        await submitPotty(newPotty);
+    };
 </script>
 
 <form on:submit={handleSubmit}>
-    <input type="text" bind:value={pottyName} placeholder="Potty Name" required />
-    <input type="text" bind:value={pottyAddress} on:input={handleAddressInput} placeholder="Potty Address" required />
-    <ul>
-        {#each addressSuggestions as suggestion}
-            <li role="option" aria-selected="false" tabindex="0" on:click={() => handleSuggestionClick(suggestion)} on:keydown={(event) => event.key === 'Enter' && handleSuggestionClick(suggestion)}>{suggestion.properties.formatted}</li>
-        {/each}
-    </ul>
-    <select bind:value={pottyRule} required>
-        <option value="" disabled selected>Potty Rule</option>
-        <option>Door Code</option>
-        <option>Free Access</option>
-        <option>Ask Staff</option>
-        <option>Call or Text</option>
-        <option>Self Explanatory</option>
-        <option>Physical Key</option>
+    <!-- Other form elements -->
+    <input type="text" bind:value={$pottyName} placeholder="Potty Name" required />
+    <input type="text" bind:value={$pottyAddress} placeholder="Potty Address" on:input={handleInput} required />
+    <select bind:value={$pottyRule} required>
+        <option value="Door Code">Door Code</option>
+        <option value="Free Access">Free Access</option>
+        <option value="Ask Staff">Ask Staff</option>
+        <option value="Call or Text">Call or Text</option>
+        <option value="Self Explanatory">Self Explanatory</option>
+        <option value="Physical Key">Physical Key</option>
     </select>
-    <textarea bind:value={pottyNotes} placeholder="Potty Notes" required></textarea>
-    <select bind:value={pottyType}>
-        <option value="" disabled selected>Potty Type</option>
-        <option>General</option>
-        <option>Supermarket</option>
-        <option>Hospital</option>
-        <option>Restaurant</option>
-        <option>Retail Store</option>
-        <option>Gas Station</option>
-        <option>Movie Theater</option>
-        <option>Coffee Shop</option>
-        <option>Public Restroom</option>
-        <option>Open Season</option>
-        <option>Mall</option>
-        <option>Hardware Store</option>
-        <option>Pharmacy</option>
-        <option>Parking Structure</option>
-        <option>Hotel</option>
+    <input type="text" bind:value={$pottyNotes} placeholder="Potty Notes" required />
+    <select bind:value={$pottyType}>
+        <option value="General">General</option>
+        <option value="Supermarket">Supermarket</option>
+        <option value="Hospital">Hospital</option>
+        <option value="Restaurant">Restaurant</option>
+        <option value="Retail Store">Retail Store</option>
+        <option value="Gas Station">Gas Station</option>
+        <option value="Movie Theater">Movie Theater</option>
+        <option value="Coffee Shop">Coffee Shop</option>
+        <option value="Public Restroom">Public Restroom</option>
+        <option value="Open Season">Open Season</option>
+        <option value="Mall">Mall</option>
+        <option value="Hardware Store">Hardware Store</option>
+        <option value="Pharmacy">Pharmacy</option>
+        <option value="Parking Structure">Parking Structure</option>
+        <option value="Hotel">Hotel</option>
     </select>
     <button type="submit">Submit</button>
 </form>

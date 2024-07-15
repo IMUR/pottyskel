@@ -13,6 +13,15 @@ export async function fetchSuggestions(
 	return data.features;
 }
 
+export async function fetchGeolocation(): Promise<UserLocation> {
+	const response = await fetch(`https://api.geoapify.com/v1/ipinfo?apiKey=${API_KEY}`);
+	const data = await response.json();
+	return {
+		latitude: data.location.latitude,
+		longitude: data.location.longitude
+	};
+}
+
 export async function submitPotty(newPotty: Potty): Promise<void> {
 	const response = await fetch('/api/potties', {
 		method: 'POST',

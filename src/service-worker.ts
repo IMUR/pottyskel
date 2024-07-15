@@ -1,19 +1,20 @@
 declare const self: ServiceWorkerGlobalScope;
 
-self.addEventListener('install', (event: InstallEvent) => {
+self.addEventListener('install', (event: ExtendableEvent) => {
 	event.waitUntil(
-		caches.open('static-v1').then((cache) => {
-			return cache.addAll(['/', '/index.html', '/styles.css', '/script.js', '/offline.html']);
+		caches.open(CACHE_NAME).then((cache) => {
+			return cache.addAll(urlsToCache);
 		})
 	);
 });
 
 self.addEventListener('activate', (event: ExtendableEvent) => {
+	const cacheWhitelist = [CACHE_NAME];
 	event.waitUntil(
 		caches.keys().then((keyList) => {
 			return Promise.all(
 				keyList.map((key) => {
-					if (key !== 'static-v1') {
+					if (cacheWhitelist.indexOf(key) === -1) {
 						return caches.delete(key);
 					}
 				})
@@ -24,13 +25,8 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
 
 self.addEventListener('fetch', (event: FetchEvent) => {
 	event.respondWith(
-		caches
-			.match(event.request)
-			.then((response) => {
-				return response || fetch(event.request);
-			})
-			.catch(() => {
-				return caches.match('/offline.html');
-			})
+		caches.match(event.request).then((response) => {
+			return response || fetch(event.request);
+		})
 	);
 });
