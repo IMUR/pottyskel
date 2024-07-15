@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { fetchSuggestions, submitPotty } from '$lib/utils/api';
+  import { createEventDispatcher } from 'svelte';
   import { writable } from 'svelte/store';
+  import { fetchSuggestions, submitPotty } from '$lib/utils/api';
+  import type { Suggestion, Potty, UserLocation } from '$lib/types';
 
   type Suggestion = {
     properties: {
