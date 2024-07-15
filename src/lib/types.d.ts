@@ -8,14 +8,11 @@ export interface Potty {
 	longitude: number;
 }
 
-export interface UserLocation {
-	latitude: number;
-	longitude: number;
-}
-
 export interface Suggestion {
 	properties: {
 		formatted: string;
 	};
-	geometry: { coordinates: [number, number] };
+	geometry: {
+		coordinates: [number, number];
+	};
 }

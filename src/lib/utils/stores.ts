@@ -1,13 +1,5 @@
 import { writable } from 'svelte/store';
-
-export interface Potty {
-	pottyName: string;
-	pottyAddress: string;
-	pottyRule: string;
-	pottyNotes: string;
-	pottyType: string;
-	latitude: number;
-	longitude: number;
-}
+import type { Potty } from '$lib/types';
 
 export const potties = writable<Potty[]>([]);
+export const suggestions = writable<string[]>([]);
