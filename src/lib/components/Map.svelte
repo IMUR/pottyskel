@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import maplibregl from 'maplibre-gl';
-  import { potties } from '$lib/utils/potties';
+  import { potties } from '$lib/utils/stores';
 
   let map: any;
   let pottyList: any[] = [];

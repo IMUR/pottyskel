@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { createEventDispatcher, onMount } from 'svelte';
-  import { fetchSuggestions, submitPotty } from '$lib/utils/api';
-  import { potties } from '$lib/utils/stores';
+  import { createEventDispatcher } from 'svelte';
+  import { writable } from 'svelte/store';
+  import { fetchSuggestions, submitPotty } from '$lib/utils/api'; // <-- Add this line
 
+  // Define types for suggestions and newPotty
   type Suggestion = {
     properties: {
       formatted: string;
@@ -20,6 +21,8 @@
     longitude: number;
   }
 
+  export let potties = writable<Potty[]>([]);
+
   let pottyName: string = '';
   let pottyAddress: string = '';
   let pottyRule: string = '';
@@ -30,31 +33,12 @@
   let selectedSuggestion: Suggestion | null = null;
   let errorMessage: string = '';
 
-  let userLocation: { latitude: number; longitude: number } | null = null;
-
   const dispatch = createEventDispatcher();
-
-  onMount(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          userLocation = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          };
-        },
-        (error) => {
-          console.error("Error getting user location:", error);
-        }
-      );
-    } else {
-      console.error("Geolocation is not supported by this browser.");
-    }
-  });
 
   async function handleInput(event: Event) {
     const value = (event.target as HTMLInputElement).value;
-    if (value.length > 2 && userLocation) {
+    if (value.length > 2) {
+      const userLocation = { latitude: 34.03196633208884, longitude: -118.47820131225592 }; // Replace with actual user location
       suggestions = await fetchSuggestions(value, userLocation);
       showSuggestions = true;
     } else {

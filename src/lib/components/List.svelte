@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { potties } from '$lib/utils/potties';
+  import { potties } from '$lib/utils/stores';
 
   let pottyList: any[] = [];
 
