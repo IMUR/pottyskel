@@ -60,6 +60,9 @@ importers:
       '@types/node':
         specifier: 20.14.10
         version: 20.14.10
+      '@types/serviceworker':
+        specifier: ^0.0.89
+        version: 0.0.89
       autoprefixer:
         specifier: 10.4.19
         version: 10.4.19(postcss@8.4.39)
@@ -640,6 +643,9 @@ packages:
 
   '@types/serve-static@1.15.7':
     resolution: {integrity: sha512-W8Ym+h8nhuRwaKPaDw34QUkwsGi6Rc4yYqvKFo5rm2FUEhCFbzVWrxXUxuKK8TASjWsysJY0nsmNCGhCOIsrOw==}
+
+  '@types/serviceworker@0.0.89':
+    resolution: {integrity: sha512-m5C1oHqOeFemS026Mx19vYWbkygiDcKqHsd33dIgLDgfTlowHawZFIGzHmSbx7o5t57dTjaJcMxB8lpWXfkiBQ==}
 
   '@types/supercluster@7.1.3':
     resolution: {integrity: sha512-Z0pOY34GDFl3Q6hUFYf3HkTwKEE02e7QgtJppBt+beEAxnyOpJua+voGFvxINBHa06GwLFFym7gRPY2SiKIfIA==}
@@ -2886,6 +2892,8 @@ snapshots:
       '@types/http-errors': 2.0.4
       '@types/node': 20.14.10
       '@types/send': 0.17.4
+
+  '@types/serviceworker@0.0.89': {}
 
   '@types/supercluster@7.1.3':
     dependencies:
