@@ -3,7 +3,6 @@
   import { fetchSuggestions, submitPotty } from '$lib/utils/api';
   import { potties } from '$lib/utils/potties';
 
-  // Define types for suggestions and newPotty
   type Suggestion = {
     properties: {
       formatted: string;
