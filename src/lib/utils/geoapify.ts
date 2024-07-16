@@ -1,8 +1,7 @@
-export async function getGeoapifySuggestions(query: string) {
-  const apiKey = "52e42fd1727343ddb979120e8c9d473c";
+export const getCoordinates = async (address: string) => {
   const response = await fetch(
-    `https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&apiKey=${apiKey}`
+    `https://api.geoapify.com/v1/geocode/search?text=${address}&apiKey=52e42fd1727343ddb979120e8c9d473c`
   );
   const data = await response.json();
-  return data.features.map((feature) => feature.properties.formatted);
-}
+  return data.features[0].geometry.coordinates;
+};

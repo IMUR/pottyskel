@@ -1,24 +1,38 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import maplibregl from 'maplibre-gl';
-  import { potties } from '$lib/utils/stores';
+  import 'maplibre-gl/dist/maplibre-gl.css';
+
+  export let potties = [];
 
   let map;
 
   onMount(() => {
-    map = new maplibregl.Map({
-      container: 'map',
-      style: 'https://maps.geoapify.com/v1/styles/osm-bright/style.json?apiKey=YOUR_API_KEY',
-      center: [longitude, latitude],
-      zoom: 13
-    });
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { latitude, longitude } = position.coords;
 
-    $potties.forEach(potty => {
-      new maplibregl.Marker()
-        .setLngLat([potty.longitude, potty.latitude])
-        .addTo(map);
+      map = new maplibregl.Map({
+        container: 'map',
+        style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+        center: [longitude, latitude],
+        zoom: 12,
+      });
+
+      potties.forEach((potty) => {
+        new maplibregl.Marker()
+          .setLngLat([potty.longitude, potty.latitude])
+          .setPopup(new maplibregl.Popup().setHTML(`<h3>${potty.pottyName}</h3><p>${potty.pottyAddress}</p>`))
+          .addTo(map);
+      });
     });
   });
 </script>
 
-<div id="map" class="w-full h-screen"></div>
+<div id="map" class="w-full h-96"></div>
+
+<style>
+  #map {
+    width: 100%;
+    height: 400px;
+  }
+</style>

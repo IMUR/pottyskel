@@ -1,13 +1,39 @@
 <script lang="ts">
-  import { potties } from '$lib/utils/stores';
+  export let potties = [];
+
+  const getDistance = (lat1, lon1, lat2, lon2) => {
+    const toRad = (value) => (value * Math.PI) / 180;
+    const R = 6371; // km
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  let userLocation = { latitude: 0, longitude: 0 };
+
+  navigator.geolocation.getCurrentPosition((position) => {
+    userLocation = position.coords;
+  });
+
+  let sortedPotties = potties.sort((a, b) => {
+    const distanceA = getDistance(userLocation.latitude, userLocation.longitude, a.latitude, a.longitude);
+    const distanceB = getDistance(userLocation.latitude, userLocation.longitude, b.latitude, b.longitude);
+    return distanceA - distanceB;
+  });
 </script>
 
-<ul>
-  {#each $potties as potty}
-    <li>
-      <strong>{potty.pottyName}</strong> - {potty.pottyAddress} ({potty.pottyRule})
+<ul class="list-disc pl-5">
+  {#each sortedPotties as potty}
+    <li class="mb-2">
+      <h3 class="text-lg font-bold">{potty.pottyName}</h3>
+      <p>{potty.pottyAddress}</p>
+      <p>{potty.pottyRule}</p>
       <p>{potty.pottyNotes}</p>
-      <p>Type: {potty.pottyType}</p>
+      <p>{potty.pottyType}</p>
     </li>
   {/each}
 </ul>

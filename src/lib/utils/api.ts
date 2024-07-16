@@ -1,15 +1,13 @@
-import { potties } from "./stores";
+export const getPotties = async () => {
+  const response = await fetch("/api/potties");
+  const data = await response.json();
+  return data;
+};
 
-export async function submitPotty(pottyData) {
-  const response = await fetch("/api/potties", {
+export const addPotty = async (potty) => {
+  await fetch("/api/potties", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(pottyData),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(potty),
   });
-
-  const result = await response.json();
-  potties.update((currentPotties) => [...currentPotties, result]);
-  return result;
-}
+};
