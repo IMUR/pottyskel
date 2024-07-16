@@ -1,35 +1,15 @@
-<!-- src/routes/+page.svelte -->
-<script context="module" lang="ts">
-    export async function load({ fetch }) {
-        const response = await fetch('/api');
-        const potties = await response.json();
-        return { props: { potties } };
-    }
-</script>
+<!-- YOU CAN DELETE EVERYTHING IN THIS PAGE -->
 
-<script lang="ts">
-    import Form from '$lib/components/Form.svelte';
-    import List from '$lib/components/List.svelte';
-    import Map from '$lib/components/Map.svelte';
-    import { potties } from '$lib/utils/stores';
-
-    export let potties: any;
-
-    potties.set(potties);
-</script>
-
-<main>
-    <h1>Potty Skel</h1>
-    <Form on:submitted={() => console.log('Form submitted')} />
-    <List />
-    <Map />
-</main>
-
-<style>
-    main {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2rem;
-    }
-</style>
+<div class="container h-full mx-auto flex justify-center items-center">
+	<div class="space-y-5">
+		<h1 class="h1">Let's get cracking bones!</h1>
+		<p>Start by exploring:</p>
+		<ul>
+			<li><code class="code">/src/routes/+layout.svelte</code> - barebones layout</li>
+			<li><code class="code">/src/app.postcss</code> - app wide css</li>
+			<li>
+				<code class="code">/src/routes/+page.svelte</code> - this page, you can replace the contents
+			</li>
+		</ul>
+	</div>
+</div>
