@@ -1,7 +1,8 @@
 <script lang="ts">
   import { potties } from '../utils/stores';
   import { onMount } from 'svelte';
-
+  import { getDrawerStore } from '@skeletonlabs/skeleton';
+  const drawerStore = getDrawerStore();
   interface Suggestion {
     formatted: string;
   }
