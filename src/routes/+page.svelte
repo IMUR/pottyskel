@@ -3,16 +3,29 @@
   import List from '$lib/components/List.svelte';
   import Map from '$lib/components/Map.svelte';
   import { onMount } from 'svelte';
-  import { loadPotties } from '$lib/utils/stores';
+  import { potties } from '$lib/utils/stores';
+
+  export let data;
+
+  potties.set(data.potties);
 
   onMount(() => {
-    loadPotties();
+    // Perform any additional setup if necessary
   });
 </script>
 
-<main class="container mx-auto p-4">
-  <h1 class="text-3xl font-bold mb-4">Potty Skel</h1>
+<main>
+  <h1>Potty Skel</h1>
   <Form />
   <List />
   <Map />
 </main>
+
+<style>
+  main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+</style>
