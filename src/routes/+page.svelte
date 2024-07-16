@@ -1,15 +1,31 @@
-<!-- YOU CAN DELETE EVERYTHING IN THIS PAGE -->
+<script lang="ts">
+  import Form from '$lib/components/Form.svelte';
+  import List from '$lib/components/List.svelte';
+  import Map from '$lib/components/Map.svelte';
+  import { onMount } from 'svelte';
+  import { potties } from '$lib/utils/stores';
 
-<div class="container h-full mx-auto flex justify-center items-center">
-	<div class="space-y-5">
-		<h1 class="h1">Let's get cracking bones!</h1>
-		<p>Start by exploring:</p>
-		<ul>
-			<li><code class="code">/src/routes/+layout.svelte</code> - barebones layout</li>
-			<li><code class="code">/src/app.postcss</code> - app wide css</li>
-			<li>
-				<code class="code">/src/routes/+page.svelte</code> - this page, you can replace the contents
-			</li>
-		</ul>
-	</div>
-</div>
+  export let data;
+
+  potties.set(data.potties);
+
+  onMount(() => {
+    // Perform any additional setup if necessary
+  });
+</script>
+
+<main>
+  <h1>Potty Skel</h1>
+  <Form />
+  <List />
+  <Map />
+</main>
+
+<style>
+  main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+</style>
