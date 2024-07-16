@@ -1,53 +1,65 @@
-<script>
-  import { submitPotty, fetchSuggestions } from '$lib/utils/api';
-  import { loadPotties } from '$lib/utils/stores';
-  import { writable } from 'svelte/store';
+<!-- src/lib/components/Form.svelte -->
+<script lang="ts">
+    import { createEventDispatcher } from 'svelte';
+    import { fetchSuggestions, submitPotty } from '$lib/utils/api';
+    import { potties } from '$lib/utils/stores';
+    import type { Potty, Suggestion, UserLocation } from '$lib/types';
 
-  let pottyName = '';
-  let pottyAddress = '';
-  let pottyRule = '';
-  let pottyNotes = '';
-  let pottyType = '';
-  let userLocation = { latitude: 0, longitude: 0 };
-  let suggestions = writable([]);
+    let potty: Potty = {
+        name: '',
+        address: '',
+        latitude: 0,
+        longitude: 0,
+        notes: ''
+    };
 
-  async function handleSubmit() {
-    const newPotty = { pottyName, pottyAddress, pottyRule, pottyNotes, pottyType, ...userLocation };
-    await submitPotty(newPotty);
-    loadPotties();
-  }
+    let suggestions: Suggestion[] = [];
+    let userLocation: UserLocation = { latitude: 0, longitude: 0 };
+    const dispatch = createEventDispatcher();
 
-  async function handleInput(event) {
-    const value = event.target.value;
-    const userLoc = { latitude: 0, longitude: 0 }; // Replace with actual user location
-    suggestions.set(await fetchSuggestions(value, userLoc));
-  }
+    async function handleInput(event: InputEvent) {
+        const target = event.target as HTMLInputElement;
+        const value = target.value;
+
+        if (value.length > 2) {
+            suggestions = await fetchSuggestions(value, userLocation);
+        }
+    }
+
+    async function handleSubmit() {
+        await submitPotty(potty);
+        const newPotties = await getPotties();
+        potties.set(newPotties);
+        dispatch('submitted', { success: true });
+    }
 </script>
 
-<form class="space-y-4" on:submit|preventDefault={handleSubmit}>
-  <input type="text" bind:value={pottyName} placeholder="Name" class="input" required />
-  <input type="text" bind:value={pottyAddress} on:input={handleInput} placeholder="Address" class="input" required />
-  <input type="text" bind:value={pottyRule} placeholder="Rule" class="input" required />
-  <textarea bind:value={pottyNotes} placeholder="Notes" class="textarea"></textarea>
-  <select bind:value={pottyType} class="select" required>
-    <option value="" disabled>Select type</option>
-    <option value="public">Public</option>
-    <option value="private">Private</option>
-  </select>
-  <button type="submit" class="btn">Submit</button>
+<form on:submit|preventDefault={handleSubmit}>
+    <input type="text" placeholder="Name" bind:value={potty.name} required />
+    <input type="text" placeholder="Address" on:input={handleInput} bind:value={potty.address} required />
+    <textarea placeholder="Notes" bind:value={potty.notes}></textarea>
+    <button type="submit">Submit</button>
+
+    <ul>
+        {#each suggestions as suggestion}
+            <li>{suggestion.properties.formatted}</li>
+        {/each}
+    </ul>
 </form>
 
-<ul>
-  {#each $suggestions as suggestion}
-    <li>{suggestion.properties.formatted}</li>
-  {/each}
-</ul>
-
 <style>
-  .input, .textarea, .select, .btn {
-    display: block;
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    li {
+        cursor: pointer;
+    }
 </style>

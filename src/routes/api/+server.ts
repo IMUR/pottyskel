@@ -1,22 +1,31 @@
-export interface UserLocation {
-	latitude: number;
-	longitude: number;
+// src/routes/api/+server.ts
+import { json } from '@sveltejs/kit';
+import fs from 'fs';
+import { resolve } from 'path';
+
+const dataFile = resolve('static/PottyList.json');
+
+export async function POST({ request }) {
+	const newPotty = await request.json();
+
+	let potties = [];
+	if (fs.existsSync(dataFile)) {
+		const data = fs.readFileSync(dataFile, 'utf-8');
+		potties = JSON.parse(data);
+	}
+
+	potties.push(newPotty);
+	fs.writeFileSync(dataFile, JSON.stringify(potties, null, 2));
+
+	return json({ success: true });
 }
 
-export interface Potty {
-	pottyName: string;
-	pottyAddress: string;
-	pottyRule: string;
-	pottyNotes: string;
-	pottyType: string;
-	latitude: number;
-	longitude: number;
-}
+export async function GET() {
+	if (fs.existsSync(dataFile)) {
+		const data = fs.readFileSync(dataFile, 'utf-8');
+		const potties = JSON.parse(data);
+		return json(potties);
+	}
 
-export interface Suggestion {
-	properties: {
-		formatted: string;
-		lat: number;
-		lon: number;
-	};
+	return json([]);
 }
