@@ -2,7 +2,13 @@
   import { writable } from 'svelte/store';
   import { pottyList } from '../utils/stores';
   import { onMount } from 'svelte';
-  import axios from 'axios';
+
+  // Define the type for address suggestions
+  interface AddressSuggestion {
+    formatted: string;
+    lat: number;
+    lon: number;
+  }
 
   let pottyName = '';
   let pottyAddress = '';
@@ -10,47 +16,78 @@
   let pottyNotes = '';
   let pottyType = '';
 
-  let addressSuggestions = writable([]);
-  let selectedAddress = null;
+  // Initialize writable stores
+  let addressSuggestions = writable<AddressSuggestion[]>([]);
+  let selectedAddress: AddressSuggestion | null = null;
 
+  // Fetch address suggestions from the Geoapify API
   async function fetchAddressSuggestions(query: string) {
-    const response = await axios.get(`https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&apiKey=52e42fd1727343ddb979120e8c9d473c`);
-    addressSuggestions.set(response.data.results);
+    const response = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&apiKey=52e42fd1727343ddb979120e8c9d473c`);
+    const data = await response.json();
+    addressSuggestions.set(data.results as AddressSuggestion[]);
   }
 
-  function selectAddress(address) {
+  // Select an address from the suggestions
+  function selectAddress(address: AddressSuggestion) {
     selectedAddress = address;
     pottyAddress = address.formatted;
   }
 
-  async function handleSubmit() {
+  // Handle form submission
+  async function handleSubmit(event: Event) {
+    event.preventDefault();
+
     if (pottyName && pottyAddress && pottyRule && pottyNotes) {
-      const response = await axios.post('/api/potties', {
-        pottyName,
-        pottyAddress: selectedAddress,
-        pottyRule,
-        pottyNotes,
-        pottyType
+      const response = await fetch('/api/potties', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pottyName,
+          pottyAddress: selectedAddress,
+          pottyRule,
+          pottyNotes,
+          pottyType,
+        }),
       });
-      if (response.status === 200) {
-        pottyList.update(list => [...list, response.data]);
+
+      if (response.ok) {
+        const newPotty = await response.json();
+        pottyList.update((list) => [...list, newPotty]);
       }
     }
+  }
+
+  // Handle input event and fetch address suggestions
+  function handleInput(event: Event) {
+    const target = event.target as HTMLInputElement;
+    fetchAddressSuggestions(target.value);
   }
 </script>
 
 <div>
-  <form on:submit|preventDefault={handleSubmit}>
+  <form on:submit={handleSubmit}>
     <div>
       <label for="pottyName">Potty Name</label>
       <input type="text" id="pottyName" bind:value={pottyName} required />
     </div>
     <div>
       <label for="pottyAddress">Potty Address</label>
-      <input type="text" id="pottyAddress" bind:value={pottyAddress} on:input={(e) => fetchAddressSuggestions(e.target.value)} required />
+      <input
+        type="text"
+        id="pottyAddress"
+        bind:value={pottyAddress}
+        on:input={handleInput}
+        required
+      />
       <ul>
         {#each $addressSuggestions as suggestion}
-          <li on:click={() => selectAddress(suggestion)}>{suggestion.formatted}</li>
+          <li>
+            <button type="button" on:click={() => selectAddress(suggestion)}>
+              {suggestion.formatted}
+            </button>
+          </li>
         {/each}
       </ul>
     </div>
