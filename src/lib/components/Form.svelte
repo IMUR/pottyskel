@@ -13,8 +13,14 @@
     lon: number;
   }
 
+  interface PottyAddress {
+    formatted: string;
+    lat: number;
+    lon: number;
+  }
+
   let pottyName = '';
-  let pottyAddress = '';
+  let pottyAddress: PottyAddress | null = null;
   let pottyRule = '';
   let pottyNotes = '';
   let pottyType = '';
@@ -29,7 +35,11 @@
       const response = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&apiKey=52e42fd1727343ddb979120e8c9d473c`);
       if (response.ok) {
         const data = await response.json();
-        addressSuggestions.set(data.results as AddressSuggestion[]);
+        addressSuggestions.set(data.features.map((feature: any) => ({
+          formatted: feature.properties.formatted,
+          lat: feature.properties.lat,
+          lon: feature.properties.lon
+        })));
       } else {
         addressSuggestions.set([]);
       }
@@ -41,7 +51,11 @@
   // Select an address from the suggestions
   function selectAddress(address: AddressSuggestion) {
     selectedAddress = address;
-    pottyAddress = address.formatted;
+    pottyAddress = {
+      formatted: address.formatted,
+      lat: address.lat,
+      lon: address.lon
+    };
   }
 
   // Handle form submission
@@ -104,7 +118,7 @@
       <input
         type="text"
         id="pottyAddress"
-        bind:value={pottyAddress}
+        bind:value={pottyAddress?.formatted}
         on:input={handleInput}
         required
       />
