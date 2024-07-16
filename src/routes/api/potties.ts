@@ -5,6 +5,12 @@ import path from "path";
 
 const pottyListPath = path.resolve("src/data/PottyList.json");
 
+export const GET: RequestHandler = async () => {
+  const data = await fs.readFile(pottyListPath, "utf-8");
+  const potties = JSON.parse(data);
+  return json(potties);
+};
+
 export const POST: RequestHandler = async ({ request }) => {
   const { pottyName, pottyAddress, pottyRule, pottyNotes, pottyType } =
     await request.json();
@@ -21,17 +27,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
   const data = await fs.readFile(pottyListPath, "utf-8");
   const potties = JSON.parse(data);
-
   potties.push(newPotty);
 
   await fs.writeFile(pottyListPath, JSON.stringify(potties, null, 2));
 
   return json(newPotty);
-};
-
-export const GET: RequestHandler = async () => {
-  const data = await fs.readFile(pottyListPath, "utf-8");
-  const potties = JSON.parse(data);
-
-  return json(potties);
 };

@@ -1,7 +1,8 @@
 <script lang="ts">
   import { writable } from 'svelte/store';
   import { pottyList } from '../utils/stores';
-  import { getDrawerStore, DrawerSettings } from "@skeletonlabs/skeleton";
+  import { getDrawerStore } from "@skeletonlabs/skeleton";
+  import type { DrawerSettings } from "@skeletonlabs/skeleton";
 
   const drawerStore = getDrawerStore();
 

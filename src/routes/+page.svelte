@@ -1,7 +1,7 @@
 <script lang="ts">
   import Map from '$lib/components/Map.svelte';
   import List from '$lib/components/List.svelte';
-  import SlideoutForm from '$lib/components/SlideoutForm.svelte';
+  import Form from '$lib/components/Form.svelte';
 </script>
 
 <main class="container mx-auto p-4">
@@ -12,7 +12,7 @@
     </div>
     <div class="w-full md:w-1/2">
       <List />
-      <SlideoutForm />
+      <Form />
     </div>
   </div>
 </main>

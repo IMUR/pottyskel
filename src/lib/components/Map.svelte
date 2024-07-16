@@ -1,16 +1,21 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { pottyList } from '../utils/stores';
+  import { writable } from 'svelte/store';
   import maplibregl from 'maplibre-gl';
+  import { pottyList } from '../utils/stores';
 
   let map;
   let userLocation = { latitude: 0, longitude: 0 };
+  const userLocationStore = writable(userLocation);
 
   onMount(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
-        userLocation.latitude = position.coords.latitude;
-        userLocation.longitude = position.coords.longitude;
+        userLocation = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        };
+        userLocationStore.set(userLocation);
 
         map = new maplibregl.Map({
           container: 'map', // container ID
@@ -34,8 +39,11 @@
   });
 </script>
 
-<div id="map" style="width: 100%; height: 500px;"></div>
+<div id="map" class="w-full h-full"></div>
 
 <style>
-  /* Add relevant styling here */
+  #map {
+    width: 100%;
+    height: 100vh;
+  }
 </style>
