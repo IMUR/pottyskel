@@ -1,8 +1,7 @@
 <script lang="ts">
   import { writable } from 'svelte/store';
   import { pottyList } from '../utils/stores';
-  import { onMount } from 'svelte';
-  import { getDrawerStore } from "@skeletonlabs/skeleton";
+  import { getDrawerStore, DrawerSettings } from "@skeletonlabs/skeleton";
 
   const drawerStore = getDrawerStore();
 
@@ -48,7 +47,7 @@
   async function handleSubmit(event: Event) {
     event.preventDefault();
 
-    if (pottyName && pottyAddress && pottyRule && pottyNotes) {
+    if (pottyName && pottyAddress && pottyRule && pottyNotes && selectedAddress) {
       const response = await fetch('/api/potties', {
         method: 'POST',
         headers: {
@@ -56,7 +55,11 @@
         },
         body: JSON.stringify({
           pottyName,
-          pottyAddress: selectedAddress,
+          pottyAddress: {
+            formatted: selectedAddress.formatted,
+            lat: selectedAddress.lat,
+            lon: selectedAddress.lon
+          },
           pottyRule,
           pottyNotes,
           pottyType,
@@ -66,6 +69,7 @@
       if (response.ok) {
         const newPotty = await response.json();
         pottyList.update((list) => [...list, newPotty]);
+        drawerStore.close(); // Close the drawer after successful submission
       }
     }
   }
@@ -75,7 +79,18 @@
     const target = event.target as HTMLInputElement;
     fetchAddressSuggestions(target.value);
   }
+
+  // Function to open the drawer with metadata
+  function openDrawer() {
+    const drawerSettings: DrawerSettings = {
+      id: 'example-1',
+      meta: { title: 'Add Potty' }
+    };
+    drawerStore.open(drawerSettings);
+  }
 </script>
+
+<button on:click={openDrawer}>Open Drawer</button>
 
 <div>
   <form on:submit={handleSubmit}>
