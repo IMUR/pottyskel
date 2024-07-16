@@ -1,8 +1,8 @@
 <script lang="ts">
-  export let potties = [];
+  export let potties: Array<{ pottyName: string; pottyAddress: string; pottyRule: string; pottyNotes: string; pottyType: string; latitude: number; longitude: number }> = [];
 
-  const getDistance = (lat1, lon1, lat2, lon2) => {
-    const toRad = (value) => (value * Math.PI) / 180;
+  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const toRad = (value: number): number => (value * Math.PI) / 180;
     const R = 6371; // km
     const dLat = toRad(lat2 - lat1);
     const dLon = toRad(lon2 - lon1);
@@ -13,7 +13,7 @@
     return R * c;
   };
 
-  let userLocation = { latitude: 0, longitude: 0 };
+  let userLocation: { latitude: number; longitude: number } = { latitude: 0, longitude: 0 };
 
   navigator.geolocation.getCurrentPosition((position) => {
     userLocation = position.coords;

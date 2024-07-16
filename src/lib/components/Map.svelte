@@ -3,9 +3,9 @@
   import maplibregl from 'maplibre-gl';
   import 'maplibre-gl/dist/maplibre-gl.css';
 
-  export let potties = [];
+  export let potties: Array<{ pottyName: string; pottyAddress: string; pottyRule: string; pottyNotes: string; pottyType: string; latitude: number; longitude: number }> = [];
 
-  let map;
+  let map: maplibregl.Map;
 
   onMount(() => {
     navigator.geolocation.getCurrentPosition((position) => {

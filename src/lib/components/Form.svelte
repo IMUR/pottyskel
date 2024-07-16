@@ -3,11 +3,11 @@
   import { addPotty } from '$lib/utils/api';
   import { getCoordinates } from '$lib/utils/geoapify';
 
-  let pottyName = '';
-  let pottyAddress = '';
-  let pottyRule = 'Free Access';
-  let pottyNotes = '';
-  let pottyType = 'General';
+  let pottyName: string = '';
+  let pottyAddress: string = '';
+  let pottyRule: string = 'Free Access';
+  let pottyNotes: string = '';
+  let pottyType: string = 'General';
 
   const submitForm = async () => {
     const coordinates = await getCoordinates(pottyAddress);
