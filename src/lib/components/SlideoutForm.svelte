@@ -66,25 +66,16 @@
 
 <style>
   .drawer {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 100%;
-    max-width: 400px;
-    height: 100%;
-    background: white;
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
-    transform: translateX(100%);
-    transition: transform 0.3s ease-in-out;
+    @apply fixed top-0 right-0 w-full max-w-md h-full bg-white shadow-xl transform translate-x-full transition-transform duration-300 ease-in-out;
   }
   .drawer.open {
-    transform: translateX(0);
+    @apply translate-x-0;
   }
 </style>
 
 <button on:click={openDrawer} class="bg-blue-500 text-white py-2 px-4 rounded">Add Potty</button>
 
-<div class:drawer class:open={isOpen}>
+<div class:drawer={isOpen} class:open={isOpen}>
   <button on:click={closeDrawer} class="absolute top-2 right-2 text-black">X</button>
   <form on:submit|preventDefault={handleSubmit} class="p-4 space-y-4">
     <div>
@@ -93,7 +84,7 @@
     </div>
     <div>
       <label for="pottyAddress">Potty Address</label>
-      <input id="pottyAddress" type="text" bind:value={pottyAddress} on:input={(e: InputEvent) => fetchSuggestions((e.target as HTMLInputElement).value)} required class="w-full" />
+      <input id="pottyAddress" type="text" bind:value={pottyAddress} on:input={(e: Event) => fetchSuggestions((e.target as HTMLInputElement).value)} required class="w-full" />
       <ul>
         {#each suggestions as suggestion}
           <li on:click={() => pottyAddress = suggestion.formatted} tabindex="0" on:keydown={(e) => e.key === 'Enter' && (pottyAddress = suggestion.formatted)}>{suggestion.formatted}</li>

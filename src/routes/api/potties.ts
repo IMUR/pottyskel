@@ -1,18 +1,13 @@
-import type { RequestHandler } from '@sveltejs/kit';
-import { readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import type { RequestHandler } from "@sveltejs/kit";
+import { writeFileSync, readFileSync } from "fs";
+import { json } from "@sveltejs/kit";
 
-const filePath = join(process.cwd(), 'PottyList.json');
+const POTTIES_FILE = "PottyList.json";
 
-export const post: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request }) => {
   const newPotty = await request.json();
-  const potties = JSON.parse(readFileSync(filePath, 'utf-8'));
-
+  const potties = JSON.parse(readFileSync(POTTIES_FILE, "utf-8"));
   potties.push(newPotty);
-  writeFileSync(filePath, JSON.stringify(potties, null, 2));
-
-  return {
-    status: 201,
-    body: newPotty,
-  };
+  writeFileSync(POTTIES_FILE, JSON.stringify(potties));
+  return json({ success: true }, { status: 201 });
 };
