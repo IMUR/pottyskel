@@ -1,13 +1,37 @@
 import type { RequestHandler } from "@sveltejs/kit";
-import { writeFileSync, readFileSync } from "fs";
 import { json } from "@sveltejs/kit";
+import { promises as fs } from "fs";
+import path from "path";
 
-const POTTIES_FILE = "PottyList.json";
+const pottyListPath = path.resolve("src/data/PottyList.json");
 
 export const POST: RequestHandler = async ({ request }) => {
-  const newPotty = await request.json();
-  const potties = JSON.parse(readFileSync(POTTIES_FILE, "utf-8"));
+  const { pottyName, pottyAddress, pottyRule, pottyNotes, pottyType } =
+    await request.json();
+
+  const newPotty = {
+    pottyName,
+    pottyAddress,
+    pottyRule,
+    pottyNotes,
+    pottyType,
+    latitude: pottyAddress.lat,
+    longitude: pottyAddress.lon,
+  };
+
+  const data = await fs.readFile(pottyListPath, "utf-8");
+  const potties = JSON.parse(data);
+
   potties.push(newPotty);
-  writeFileSync(POTTIES_FILE, JSON.stringify(potties));
-  return json({ success: true }, { status: 201 });
+
+  await fs.writeFile(pottyListPath, JSON.stringify(potties, null, 2));
+
+  return json(newPotty);
+};
+
+export const GET: RequestHandler = async () => {
+  const data = await fs.readFile(pottyListPath, "utf-8");
+  const potties = JSON.parse(data);
+
+  return json(potties);
 };
