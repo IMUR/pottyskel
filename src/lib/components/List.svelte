@@ -1,17 +1,30 @@
 <script lang="ts">
   import { potties } from '../utils/stores';
+  import { get } from 'svelte/store';
 
-  $: sortedPotties = $potties.sort((a, b) => a.distance - b.distance);
+  interface Potty {
+    distance: number;
+    pottyName: string;
+    pottyAddress: string;
+    pottyRule: string;
+    pottyNotes: string;
+    pottyType: string;
+  }
+
+  let pottyList: Potty[] = get(potties);
+
+  $: pottyList = get(potties);
 </script>
 
-<ul>
-  {#each sortedPotties as potty}
-    <li>
-      <h3>{potty.pottyName}</h3>
+<div class="p-4 space-y-4">
+  {#each pottyList as potty}
+    <div class="p-4 border rounded-lg shadow">
+      <h3 class="text-xl font-bold">{potty.pottyName}</h3>
       <p>{potty.pottyAddress}</p>
       <p>{potty.pottyRule}</p>
       <p>{potty.pottyNotes}</p>
       <p>{potty.pottyType}</p>
-    </li>
+      <p>{potty.distance} meters away</p>
+    </div>
   {/each}
-</ul>
+</div>

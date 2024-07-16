@@ -45,7 +45,6 @@
     
     potties.update(current => [...current, newPotty]);
 
-    // Send data to the backend
     await fetch('/api/potties', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -130,4 +129,7 @@
   </form>
 </div>
 
-export default SlideoutForm;
+<script>
+
+
+export default SlideoutForm
