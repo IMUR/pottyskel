@@ -1,49 +1,24 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { writable } from 'svelte/store';
   import maplibregl from 'maplibre-gl';
-  import { pottyList } from '../utils/stores';
+  import { potties } from '$lib/utils/stores';
 
   let map;
-  let userLocation = { latitude: 0, longitude: 0 };
-  const userLocationStore = writable(userLocation);
 
   onMount(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        userLocation = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        };
-        userLocationStore.set(userLocation);
+    map = new maplibregl.Map({
+      container: 'map',
+      style: 'https://maps.geoapify.com/v1/styles/osm-bright/style.json?apiKey=YOUR_API_KEY',
+      center: [longitude, latitude],
+      zoom: 13
+    });
 
-        map = new maplibregl.Map({
-          container: 'map', // container ID
-          style: `https://maps.geoapify.com/v1/styles/osm-carto/style.json?apiKey=52e42fd1727343ddb979120e8c9d473c`, // style URL
-          center: [userLocation.longitude, userLocation.latitude], // starting position [lng, lat]
-          zoom: 13 // starting zoom
-        });
-
-        new maplibregl.Marker({ color: 'red' })
-          .setLngLat([userLocation.longitude, userLocation.latitude])
-          .addTo(map);
-
-        $pottyList.forEach(potty => {
-          new maplibregl.Marker()
-            .setLngLat([potty.longitude, potty.latitude])
-            .setPopup(new maplibregl.Popup().setHTML(`<h3>${potty.pottyName}</h3><p>${potty.pottyAddress.formatted}</p><p>${potty.pottyRule}</p><p>${potty.pottyNotes}</p>`))
-            .addTo(map);
-        });
-      });
-    }
+    $potties.forEach(potty => {
+      new maplibregl.Marker()
+        .setLngLat([potty.longitude, potty.latitude])
+        .addTo(map);
+    });
   });
 </script>
 
-<div id="map" class="w-full h-full"></div>
-
-<style>
-  #map {
-    width: 100%;
-    height: 100vh;
-  }
-</style>
+<div id="map" class="w-full h-screen"></div>
