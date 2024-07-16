@@ -2,6 +2,9 @@
   import { writable } from 'svelte/store';
   import { pottyList } from '../utils/stores';
   import { onMount } from 'svelte';
+  import { getDrawerStore } from "@skeletonlabs/skeleton";
+
+  const drawerStore = getDrawerStore();
 
   // Define the type for address suggestions
   interface AddressSuggestion {
@@ -22,9 +25,17 @@
 
   // Fetch address suggestions from the Geoapify API
   async function fetchAddressSuggestions(query: string) {
-    const response = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&apiKey=52e42fd1727343ddb979120e8c9d473c`);
-    const data = await response.json();
-    addressSuggestions.set(data.results as AddressSuggestion[]);
+    if (query.length > 0) {
+      const response = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&apiKey=52e42fd1727343ddb979120e8c9d473c`);
+      if (response.ok) {
+        const data = await response.json();
+        addressSuggestions.set(data.results as AddressSuggestion[]);
+      } else {
+        addressSuggestions.set([]);
+      }
+    } else {
+      addressSuggestions.set([]);
+    }
   }
 
   // Select an address from the suggestions
@@ -82,7 +93,7 @@
         required
       />
       <ul>
-        {#each $addressSuggestions as suggestion}
+        {#each $addressSuggestions as suggestion (suggestion.formatted)}
           <li>
             <button type="button" on:click={() => selectAddress(suggestion)}>
               {suggestion.formatted}
