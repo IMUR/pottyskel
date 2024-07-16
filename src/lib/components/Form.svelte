@@ -6,7 +6,6 @@
 
   const drawerStore = getDrawerStore();
 
-  // Define the type for address suggestions
   interface AddressSuggestion {
     formatted: string;
     lat: number;
@@ -25,30 +24,34 @@
   let pottyNotes = '';
   let pottyType = '';
 
-  // Initialize writable stores
+  let errorMessage = '';
+
   let addressSuggestions = writable<AddressSuggestion[]>([]);
   let selectedAddress: AddressSuggestion | null = null;
 
-  // Fetch address suggestions from the Geoapify API
   async function fetchAddressSuggestions(query: string) {
-    if (query.length > 0) {
-      const response = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&apiKey=52e42fd1727343ddb979120e8c9d473c`);
-      if (response.ok) {
-        const data = await response.json();
-        addressSuggestions.set(data.features.map((feature: any) => ({
-          formatted: feature.properties.formatted,
-          lat: feature.properties.lat,
-          lon: feature.properties.lon
-        })));
+    try {
+      if (query.length > 0) {
+        const response = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&apiKey=52e42fd1727343ddb979120e8c9d473c`);
+        if (response.ok) {
+          const data = await response.json();
+          addressSuggestions.set(data.features.map((feature: { properties: { formatted: string, lat: number, lon: number } }) => ({
+            formatted: feature.properties.formatted,
+            lat: feature.properties.lat,
+            lon: feature.properties.lon
+          })));
+        } else {
+          addressSuggestions.set([]);
+        }
       } else {
         addressSuggestions.set([]);
       }
-    } else {
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
       addressSuggestions.set([]);
     }
   }
 
-  // Select an address from the suggestions
   function selectAddress(address: AddressSuggestion) {
     selectedAddress = address;
     pottyAddress = {
@@ -58,11 +61,15 @@
     };
   }
 
-  // Handle form submission
   async function handleSubmit(event: Event) {
     event.preventDefault();
 
-    if (pottyName && pottyAddress && pottyRule && pottyNotes && selectedAddress) {
+    if (!pottyName || !pottyAddress || !pottyRule || !pottyNotes) {
+      errorMessage = 'Please fill out all required fields.';
+      return;
+    }
+
+    try {
       const response = await fetch('/api/potties', {
         method: 'POST',
         headers: {
@@ -71,9 +78,9 @@
         body: JSON.stringify({
           pottyName,
           pottyAddress: {
-            formatted: selectedAddress.formatted,
-            lat: selectedAddress.lat,
-            lon: selectedAddress.lon
+            formatted: selectedAddress?.formatted,
+            lat: selectedAddress?.lat,
+            lon: selectedAddress?.lon
           },
           pottyRule,
           pottyNotes,
@@ -84,18 +91,22 @@
       if (response.ok) {
         const newPotty = await response.json();
         pottyList.update((list) => [...list, newPotty]);
-        drawerStore.close(); // Close the drawer after successful submission
+        drawerStore.close();
+        errorMessage = '';
+      } else {
+        throw new Error('Failed to submit data');
       }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      errorMessage = 'Failed to submit data. Please try again.';
     }
   }
 
-  // Handle input event and fetch address suggestions
   function handleInput(event: Event) {
     const target = event.target as HTMLInputElement;
     fetchAddressSuggestions(target.value);
   }
 
-  // Function to open the drawer with metadata
   function openDrawer() {
     const drawerSettings: DrawerSettings = {
       id: 'example-1',
@@ -167,10 +178,16 @@
         <option value="Hotel">Hotel</option>
       </select>
     </div>
+    {#if errorMessage}
+      <div class="error">{errorMessage}</div>
+    {/if}
     <button type="submit">Submit</button>
   </form>
 </div>
 
 <style>
+  .error {
+    color: red;
+  }
   /* Add relevant styling here */
 </style>
