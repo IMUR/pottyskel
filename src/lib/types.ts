@@ -1,3 +1,5 @@
+import type { LngLatLike, Map, Marker } from "maplibre-gl";
+
 export interface Potty {
   pottyName: string;
   pottyAddress: string;
@@ -6,4 +8,9 @@ export interface Potty {
   pottyType: string;
   latitude: number;
   longitude: number;
+}
+
+export interface GeoapifyCoordinates {
+  lat: number;
+  lon: number;
 }

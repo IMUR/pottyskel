@@ -1,41 +1,48 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import maplibregl from 'maplibre-gl';
-  import 'maplibre-gl/dist/maplibre-gl.css';
+  import maplibregl, { Map, Marker } from 'maplibre-gl';
+  import { get } from 'svelte/store';
+  import { potties } from '$lib/utils/stores';
   import type { Potty } from '$lib/types';
 
-  export let potties: Potty[] = [];
-
-  let map: maplibregl.Map;
+  let map: Map;
+  let userMarker: Marker;
 
   onMount(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const { latitude, longitude } = position.coords;
+    map = new maplibregl.Map({
+      container: 'map',
+      style: 'https://demotiles.maplibre.org/style.json',
+      center: [0, 0],
+      zoom: 2
+    });
 
-        map = new maplibregl.Map({
-          container: 'map',
-          style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-          center: [longitude, latitude],
-          zoom: 12,
-        });
+    map.addControl(new maplibregl.NavigationControl());
 
-        potties.forEach((potty) => {
-          new maplibregl.Marker()
-            .setLngLat([potty.longitude, potty.latitude])
-            .setPopup(new maplibregl.Popup().setHTML(`<h3>${potty.pottyName}</h3><p>${potty.pottyAddress}</p>`))
-            .addTo(map);
-        });
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { latitude, longitude } = position.coords;
+      map.setCenter([longitude, latitude]);
+      userMarker = new maplibregl.Marker()
+        .setLngLat([longitude, latitude])
+        .addTo(map);
+    });
+
+    const pottyMarkers = get(potties).map((potty: Potty) => {
+      const marker = new maplibregl.Marker()
+        .setLngLat([potty.longitude, potty.latitude])
+        .addTo(map);
+      marker.getElement().addEventListener('click', () => {
+        // Handle marker click
       });
-    }
+      return marker;
+    });
   });
 </script>
 
-<div id="map" class="w-full h-96"></div>
+<div id="map" class="w-full h-full"></div>
 
 <style>
   #map {
+    height: 100%;
     width: 100%;
-    height: 400px;
   }
 </style>
