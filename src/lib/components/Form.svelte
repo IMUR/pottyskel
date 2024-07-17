@@ -1,15 +1,16 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   import { addPotty } from '$lib/utils/api';
-  import { getCoordinates } from '$lib/utils/geoapify';
+  import { getCoordinates, getAutocompleteSuggestions } from '$lib/utils/geoapify';
   import { getDrawerStore } from '@skeletonlabs/skeleton';
   import type { Potty } from '$lib/types';
 
   let pottyName: string = '';
   let pottyAddress: string = '';
-  let pottyRule: string = 'Free Access';
+  let pottyRule: string = '';
   let pottyNotes: string = '';
-  let pottyType: string = 'General';
+  let pottyType: string = '';
+  let autocompleteSuggestions: string[] = [];
   const dispatch = createEventDispatcher();
 
   const submitForm = async () => {
@@ -25,32 +26,82 @@
         longitude: coordinates.lon,
       };
       await addPotty(newPotty);
-      // Dispatch event to refresh the potties list
       dispatch('refreshPotties');
-      // Close the drawer
       getDrawerStore().close();
     } catch (error) {
       console.error('Error adding potty:', error);
     }
-
-    // Reset form
     pottyName = '';
     pottyAddress = '';
-    pottyRule = 'Free Access';
+    pottyRule = '';
     pottyNotes = '';
-    pottyType = 'General';
+    pottyType = '';
+    autocompleteSuggestions = [];
+  };
+
+  const fetchAutocompleteSuggestions = async () => {
+    if (pottyAddress.length > 2) {
+      try {
+        autocompleteSuggestions = await getAutocompleteSuggestions(pottyAddress);
+      } catch (error) {
+        console.error('Error fetching autocomplete suggestions:', error);
+        autocompleteSuggestions = [];
+      }
+    } else {
+      autocompleteSuggestions = [];
+    }
+  };
+
+  const selectSuggestion = (suggestion: string) => {
+    pottyAddress = suggestion;
+    autocompleteSuggestions = [];
+  };
+
+  const handleClickOutside = (event: MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.autocomplete-container')) {
+      autocompleteSuggestions = [];
+    }
+  };
+
+  onMount(() => {
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  });
+
+  const handleKeyDown = (event: KeyboardEvent, suggestion: string) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      selectSuggestion(suggestion);
+    }
   };
 </script>
 
-<form on:submit|preventDefault={submitForm} class="p-4 bg-white rounded shadow-md">
+<form on:submit|preventDefault={submitForm} class="p-4 bg-white rounded shadow-md text-black">
   <div class="mb-4">
     <label for="pottyName" class="block text-gray-700">Potty Name</label>
     <input id="pottyName" bind:value={pottyName} required class="mt-1 p-2 block w-full border border-gray-300 rounded-md" />
   </div>
 
-  <div class="mb-4">
+  <div class="mb-4 relative autocomplete-container">
     <label for="pottyAddress" class="block text-gray-700">Potty Address</label>
-    <input id="pottyAddress" bind:value={pottyAddress} required class="mt-1 p-2 block w-full border border-gray-300 rounded-md" />
+    <input id="pottyAddress" bind:value={pottyAddress} on:input={fetchAutocompleteSuggestions} required class="mt-1 p-2 block w-full border border-gray-300 rounded-md" />
+    {#if autocompleteSuggestions.length > 0}
+      <ul class="absolute bg-white border border-gray-300 w-full mt-1 rounded-md z-10 max-h-48 overflow-y-auto">
+        {#each autocompleteSuggestions as suggestion}
+          <li 
+            on:click={() => selectSuggestion(suggestion)} 
+            on:keydown={(event) => handleKeyDown(event, suggestion)} 
+            tabindex="0" 
+            role="menuitem" 
+            class="p-2 hover:bg-gray-200 cursor-pointer"
+          >
+            {suggestion}
+          </li>
+        {/each}
+      </ul>
+    {/if}
   </div>
 
   <div class="mb-4">

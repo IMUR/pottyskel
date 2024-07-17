@@ -2,29 +2,32 @@
   import { onMount } from 'svelte';
   import maplibregl from 'maplibre-gl';
   import 'maplibre-gl/dist/maplibre-gl.css';
+  import type { Potty } from '$lib/types';
 
-  export let potties: Array<{ pottyName: string; pottyAddress: string; pottyRule: string; pottyNotes: string; pottyType: string; latitude: number; longitude: number }> = [];
+  export let potties: Potty[] = [];
 
   let map: maplibregl.Map;
 
   onMount(() => {
-    navigator.geolocation.getCurrentPosition((position) => {
-      const { latitude, longitude } = position.coords;
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
 
-      map = new maplibregl.Map({
-        container: 'map',
-        style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-        center: [longitude, latitude],
-        zoom: 12,
-      });
+        map = new maplibregl.Map({
+          container: 'map',
+          style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+          center: [longitude, latitude],
+          zoom: 12,
+        });
 
-      potties.forEach((potty) => {
-        new maplibregl.Marker()
-          .setLngLat([potty.longitude, potty.latitude])
-          .setPopup(new maplibregl.Popup().setHTML(`<h3>${potty.pottyName}</h3><p>${potty.pottyAddress}</p>`))
-          .addTo(map);
+        potties.forEach((potty) => {
+          new maplibregl.Marker()
+            .setLngLat([potty.longitude, potty.latitude])
+            .setPopup(new maplibregl.Popup().setHTML(`<h3>${potty.pottyName}</h3><p>${potty.pottyAddress}</p>`))
+            .addTo(map);
+        });
       });
-    });
+    }
   });
 </script>
 

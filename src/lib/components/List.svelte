@@ -1,5 +1,8 @@
 <script lang="ts">
-  export let potties: Array<{ pottyName: string; pottyAddress: string; pottyRule: string; pottyNotes: string; pottyType: string; latitude: number; longitude: number }> = [];
+  import { onMount } from 'svelte';
+  import type { Potty } from '$lib/types';
+
+  export let potties: Potty[] = [];
 
   const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const toRad = (value: number): number => (value * Math.PI) / 180;
@@ -15,15 +18,20 @@
 
   let userLocation: { latitude: number; longitude: number } = { latitude: 0, longitude: 0 };
 
-  navigator.geolocation.getCurrentPosition((position) => {
-    userLocation = position.coords;
+  onMount(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        userLocation = position.coords;
+        sortedPotties = potties.sort((a, b) => {
+          const distanceA = getDistance(userLocation.latitude, userLocation.longitude, a.latitude, a.longitude);
+          const distanceB = getDistance(userLocation.latitude, userLocation.longitude, b.latitude, b.longitude);
+          return distanceA - distanceB;
+        });
+      });
+    }
   });
 
-  let sortedPotties = potties.sort((a, b) => {
-    const distanceA = getDistance(userLocation.latitude, userLocation.longitude, a.latitude, a.longitude);
-    const distanceB = getDistance(userLocation.latitude, userLocation.longitude, b.latitude, b.longitude);
-    return distanceA - distanceB;
-  });
+  let sortedPotties = potties;
 </script>
 
 <ul class="list-disc pl-5">
