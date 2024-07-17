@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import maplibregl, { Map, Marker } from 'maplibre-gl';
-  import { get } from 'svelte/store';
-  import { potties } from '$lib/utils/stores';
   import type { Potty } from '$lib/types';
+
+  export let potties: Potty[];
 
   let map: Map;
   let userMarker: Marker;
@@ -26,14 +26,13 @@
         .addTo(map);
     });
 
-    const pottyMarkers = get(potties).map((potty: Potty) => {
+    potties.forEach((potty) => {
       const marker = new maplibregl.Marker()
         .setLngLat([potty.longitude, potty.latitude])
         .addTo(map);
       marker.getElement().addEventListener('click', () => {
         // Handle marker click
       });
-      return marker;
     });
   });
 </script>

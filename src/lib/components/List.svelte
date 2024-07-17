@@ -4,6 +4,8 @@
 
   export let potties: Potty[] = [];
 
+  let sortedPotties: Potty[] = [];
+
   const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const toRad = (value: number): number => (value * Math.PI) / 180;
     const R = 6371; // km
@@ -21,17 +23,22 @@
   onMount(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
-        userLocation = position.coords;
-        sortedPotties = potties.sort((a, b) => {
-          const distanceA = getDistance(userLocation.latitude, userLocation.longitude, a.latitude, a.longitude);
-          const distanceB = getDistance(userLocation.latitude, userLocation.longitude, b.latitude, b.longitude);
-          return distanceA - distanceB;
-        });
+        userLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+        sortPotties();
       });
+    } else {
+      // If geolocation is not available, just sort without user location
+      sortedPotties = [...potties];
     }
   });
 
-  let sortedPotties = potties;
+  const sortPotties = () => {
+    sortedPotties = potties.slice().sort((a, b) => {
+      const distanceA = getDistance(userLocation.latitude, userLocation.longitude, a.latitude, a.longitude);
+      const distanceB = getDistance(userLocation.latitude, userLocation.longitude, b.latitude, b.longitude);
+      return distanceA - distanceB;
+    });
+  };
 </script>
 
 <ul class="list-disc pl-5">

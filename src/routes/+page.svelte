@@ -3,7 +3,7 @@
   import Map from '$lib/components/Map.svelte';
   import List from '$lib/components/List.svelte';
   import { getDrawerStore } from '@skeletonlabs/skeleton';
-  import { getPotties, addPotty } from '$lib/utils/api';
+  import { getPotties } from '$lib/utils/api';
   import type { Potty } from '$lib/types';
 
   let potties: Potty[] = [];
@@ -12,7 +12,8 @@
   // Fetch potties data on component mount
   onMount(async () => {
     try {
-      potties = await getPotties();
+      const fetchedPotties: Potty[] = await getPotties();
+      potties = fetchedPotties;
     } catch (error) {
       console.error('Error fetching potties:', error);
     }
