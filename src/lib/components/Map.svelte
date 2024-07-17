@@ -6,7 +6,6 @@
   export let potties: Potty[];
 
   let map: maplibregl.Map;
-  let userMarker: maplibregl.Marker;
 
   onMount(() => {
     map = new maplibregl.Map({
@@ -21,7 +20,7 @@
     navigator.geolocation.getCurrentPosition((position) => {
       const { latitude, longitude } = position.coords;
       map.setCenter([longitude, latitude]);
-      userMarker = new maplibregl.Marker()
+      new maplibregl.Marker()
         .setLngLat([longitude, latitude])
         .addTo(map);
     });
@@ -37,7 +36,7 @@
   });
 </script>
 
-<div id="map" class="w-full h-96 md:h-screen"></div>
+<div id="map" class="w-full h-full rounded-r-lg overflow-hidden"></div>
 
 <style>
   #map {
