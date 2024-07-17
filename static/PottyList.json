@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "pottyName": "pavilions",
+    "pottyAddress": "Pavilions, 820 Montana Ave, Santa Monica, CA 90403, United States of America",
+    "pottyRule": "Door Code",
+    "pottyNotes": "02231",
+    "pottyType": "Supermarket",
+    "latitude": 34.027753423000405,
+    "longitude": -118.50050190637977
+  }
+]

@@ -12,6 +12,7 @@
   let pottyType: string = '';
   let autocompleteSuggestions: string[] = [];
   const dispatch = createEventDispatcher();
+  const drawerStore = getDrawerStore();
 
   const submitForm = async () => {
     try {
@@ -27,7 +28,7 @@
       };
       await addPotty(newPotty);
       dispatch('refreshPotties');
-      getDrawerStore().close();
+      drawerStore.close();
     } catch (error) {
       console.error('Error adding potty:', error);
     }
@@ -144,3 +145,23 @@
 
   <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Submit</button>
 </form>
+
+<style>
+  .autocomplete-suggestions {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 1000;
+  }
+  .autocomplete-suggestion {
+    padding: 8px;
+    cursor: pointer;
+  }
+  .autocomplete-suggestion:hover {
+    background-color: #f0f0f0;
+  }
+</style>
