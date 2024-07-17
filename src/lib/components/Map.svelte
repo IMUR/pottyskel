@@ -1,12 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import maplibregl, { Map, Marker } from 'maplibre-gl';
+  import maplibregl from 'maplibre-gl';
   import type { Potty } from '$lib/types';
 
   export let potties: Potty[];
 
-  let map: Map;
-  let userMarker: Marker;
+  let map: maplibregl.Map;
+  let userMarker: maplibregl.Marker;
 
   onMount(() => {
     map = new maplibregl.Map({
@@ -37,7 +37,7 @@
   });
 </script>
 
-<div id="map" class="w-full h-full"></div>
+<div id="map" class="w-full h-96 md:h-screen"></div>
 
 <style>
   #map {

@@ -1,4 +1,12 @@
-import type { LngLatLike, Map, Marker } from "maplibre-gl";
+import type {
+  Map,
+  Marker,
+  LngLatLike,
+  MapOptions,
+  NavigationControl,
+} from "maplibre-gl";
+
+export type { Map, Marker, LngLatLike, MapOptions, NavigationControl };
 
 export interface Potty {
   pottyName: string;
