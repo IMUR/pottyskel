@@ -1,25 +1,37 @@
 <script lang="ts">
-  import { writable } from 'svelte/store';
+  import { createEventDispatcher } from 'svelte';
   import { addPotty } from '$lib/utils/api';
   import { getCoordinates } from '$lib/utils/geoapify';
+  import { getDrawerStore } from '@skeletonlabs/skeleton';
+  import type { Potty } from '$lib/types';
 
   let pottyName: string = '';
   let pottyAddress: string = '';
   let pottyRule: string = 'Free Access';
   let pottyNotes: string = '';
   let pottyType: string = 'General';
+  const dispatch = createEventDispatcher();
 
   const submitForm = async () => {
-    const coordinates = await getCoordinates(pottyAddress);
-    await addPotty({
-      pottyName,
-      pottyAddress,
-      pottyRule,
-      pottyNotes,
-      pottyType,
-      latitude: coordinates.lat,
-      longitude: coordinates.lon,
-    });
+    try {
+      const coordinates = await getCoordinates(pottyAddress);
+      const newPotty: Potty = {
+        pottyName,
+        pottyAddress,
+        pottyRule,
+        pottyNotes,
+        pottyType,
+        latitude: coordinates.lat,
+        longitude: coordinates.lon,
+      };
+      await addPotty(newPotty);
+      // Dispatch event to refresh the potties list
+      dispatch('refreshPotties');
+      // Close the drawer
+      getDrawerStore().close();
+    } catch (error) {
+      console.error('Error adding potty:', error);
+    }
 
     // Reset form
     pottyName = '';

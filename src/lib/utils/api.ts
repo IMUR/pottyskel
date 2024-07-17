@@ -1,31 +1,22 @@
-export const getPotties = async (): Promise<
-  Array<{
-    pottyName: string;
-    pottyAddress: string;
-    pottyRule: string;
-    pottyNotes: string;
-    pottyType: string;
-    latitude: number;
-    longitude: number;
-  }>
-> => {
+import type { Potty } from "$lib/types";
+
+// Utility functions to interact with the potty API
+export const getPotties = async (): Promise<Potty[]> => {
   const response = await fetch("/api/potties");
-  const data = await response.json();
-  return data;
+  if (!response.ok) {
+    throw new Error("Failed to fetch potties");
+  }
+  return response.json();
 };
 
-export const addPotty = async (potty: {
-  pottyName: string;
-  pottyAddress: string;
-  pottyRule: string;
-  pottyNotes: string;
-  pottyType: string;
-  latitude: number;
-  longitude: number;
-}): Promise<void> => {
-  await fetch("/api/potties", {
+export const addPotty = async (potty: Potty): Promise<Potty> => {
+  const response = await fetch("/api/potties", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(potty),
   });
+  if (!response.ok) {
+    throw new Error("Failed to add potty");
+  }
+  return response.json();
 };

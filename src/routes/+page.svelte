@@ -2,13 +2,20 @@
   import { onMount } from 'svelte';
   import Map from '$lib/components/Map.svelte';
   import List from '$lib/components/List.svelte';
-  import { drawerStore } from '@skeletonlabs/skeleton';
-  import { getPotties } from '$lib/utils/api';
+  import { getDrawerStore } from '@skeletonlabs/skeleton';
+  import { getPotties, addPotty } from '$lib/utils/api';
+  import type { Potty } from '$lib/types';
 
-  let potties = [];
+  let potties: Potty[] = [];
+  const drawerStore = getDrawerStore();
 
+  // Fetch potties data on component mount
   onMount(async () => {
-    potties = await getPotties();
+    try {
+      potties = await getPotties();
+    } catch (error) {
+      console.error('Error fetching potties:', error);
+    }
   });
 
   function openDrawer() {
@@ -28,3 +35,21 @@
     </div>
   </div>
 </main>
+
+<style>
+  main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  @media (min-width: 768px) {
+    main {
+      flex-direction: row;
+    }
+  }
+
+  .container {
+    max-width: 1200px;
+  }
+</style>
