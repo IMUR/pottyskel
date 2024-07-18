@@ -2,7 +2,6 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import { addPotty } from '$lib/utils/api';
   import { getCoordinates, getAutocompleteSuggestions } from '$lib/utils/geoapify';
-  import { getDrawerStore } from '@skeletonlabs/skeleton';
   import type { Potty } from '$lib/types';
 
   let pottyName: string = '';
@@ -12,7 +11,6 @@
   let pottyType: string = '';
   let autocompleteSuggestions: string[] = [];
   const dispatch = createEventDispatcher();
-  const drawerStore = getDrawerStore();
 
   const submitForm = async () => {
     try {
@@ -28,7 +26,7 @@
       };
       await addPotty(newPotty);
       dispatch('refreshPotties');
-      drawerStore.close();
+      closeForm();
     } catch (error) {
       console.error('Error adding potty:', error);
     }
@@ -77,6 +75,10 @@
       selectSuggestion(suggestion);
     }
   };
+
+  export function closeForm() {
+    dispatch('closeForm');
+  }
 </script>
 
 <form on:submit|preventDefault={submitForm} class="p-4 bg-white rounded shadow-md text-black">
@@ -89,14 +91,14 @@
     <label for="pottyAddress" class="block text-gray-700">Potty Address</label>
     <input id="pottyAddress" bind:value={pottyAddress} on:input={fetchAutocompleteSuggestions} required class="mt-1 p-2 block w-full border border-gray-300 rounded-md" />
     {#if autocompleteSuggestions.length > 0}
-      <ul class="absolute bg-white border border-gray-300 w-full mt-1 rounded-md z-10 max-h-48 overflow-y-auto">
+      <ul class="absolute bg-white border border-gray-300 w-full mt-1 rounded-md z-10 max-h-48 overflow-y-auto autocomplete-suggestions">
         {#each autocompleteSuggestions as suggestion}
           <li 
             on:click={() => selectSuggestion(suggestion)} 
             on:keydown={(event) => handleKeyDown(event, suggestion)} 
             tabindex="0" 
             role="menuitem" 
-            class="p-2 hover:bg-gray-200 cursor-pointer"
+            class="p-2 hover:bg-gray-200 cursor-pointer autocomplete-suggestion"
           >
             {suggestion}
           </li>
@@ -144,6 +146,7 @@
   </div>
 
   <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Submit</button>
+  <button type="button" on:click={closeForm} class="bg-red-500 text-white px-4 py-2 rounded-md ml-2">Close</button>
 </form>
 
 <style>

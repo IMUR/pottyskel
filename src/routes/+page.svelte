@@ -1,14 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import Map from '$lib/components/Map.svelte';
-  import List from '$lib/components/List.svelte';
+  import maplibregl from 'maplibre-gl';
   import Form from '$lib/components/Form.svelte';
-  import { getDrawerStore, Drawer } from '@skeletonlabs/skeleton';
-  import { getPotties } from '$lib/utils/api';
   import type { Potty } from '$lib/types';
 
   let potties: Potty[] = [];
-  const drawerStore = getDrawerStore();
+  let showForm = false;
 
   async function fetchPotties() {
     const response = await fetch('/api/potties');
@@ -19,53 +16,137 @@
   onMount(async () => {
     try {
       potties = await fetchPotties();
+      initializeMap();
     } catch (error) {
       console.error('Error fetching potties:', error);
     }
   });
 
-  function openDrawer() {
-    drawerStore.open({ id: 'pottyForm' });
+  let map: maplibregl.Map;
+
+  function initializeMap() {
+    map = new maplibregl.Map({
+      container: 'map',
+      style: `https://maps.geoapify.com/v1/styles/positron/style.json?apiKey=52e42fd1727343ddb979120e8c9d473c`,
+      center: [0, 0],
+      zoom: 2
+    });
+
+    const navControl = new maplibregl.NavigationControl();
+    const geolocateControl = new maplibregl.GeolocateControl({
+      positionOptions: {
+        enableHighAccuracy: true
+      },
+      trackUserLocation: true,
+      showUserLocation: true
+    });
+
+    map.addControl(navControl, 'top-right');
+    map.addControl(geolocateControl, 'top-right');
+
+    // Trigger geolocation on map load
+    map.on('load', () => {
+      geolocateControl.trigger();
+    });
+
+    geolocateControl.on('geolocate', (e) => {
+      const { longitude, latitude } = e.coords;
+      map.setCenter([longitude, latitude]);
+      new maplibregl.Marker()
+        .setLngLat([longitude, latitude])
+        .addTo(map);
+    });
+
+    potties.forEach((potty) => {
+      const marker = new maplibregl.Marker()
+        .setLngLat([potty.longitude, potty.latitude])
+        .addTo(map);
+      marker.getElement().addEventListener('click', () => {
+        // Handle marker click
+      });
+    });
+  }
+
+  function toggleForm() {
+    showForm = !showForm;
+  }
+
+  function closeForm() {
+    showForm = false;
   }
 </script>
 
-<main class="container mx-auto p-4">
-  <h1 class="text-2xl font-bold mb-4">Potty Snitch</h1>
-  <div class="flex flex-col md:flex-row bg-gray-100 rounded-lg overflow-hidden">
-    <div class="md:w-1/2 p-4">
-      <List {potties} />
-    </div>
-    <div class="md:w-1/2 p-4 h-96">
-      <Map {potties} />
+<main class="container mx-auto p-4 flex flex-col items-center">
+  <div class="w-full max-w-3xl h-full flex flex-col bg-gray-100 rounded-lg overflow-hidden">
+    <div id="map" class="map-container"></div>
+    <div class="table-container w-full overflow-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Name
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Address
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Rule
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Notes
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Type
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {#each potties as potty}
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyName}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyAddress}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyRule}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyNotes}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyType}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
     </div>
   </div>
-  <button on:click={openDrawer} class="bg-blue-500 text-white px-4 py-2 rounded-md mb-4">Add Potty</button>
-</main>
-
-<Drawer>
-  {#if $drawerStore.id === 'pottyForm'}
-    <div class="fixed top-0 left-0 w-full h-full flex items-center justify-center backdrop-blur-sm">
-      <div class="bg-white p-4 rounded-lg shadow-lg">
-        <Form />
+  <button on:click={toggleForm} class="bg-blue-500 text-white px-4 py-2 rounded-md mt-4">Add Potty</button>
+  {#if showForm}
+    <div class="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
+      <div class="bg-white p-4 rounded-lg shadow-lg w-96">
+        <Form on:closeForm={closeForm} />
       </div>
     </div>
   {/if}
-</Drawer>
+</main>
 
 <style>
+  .map-container {
+    height: 70%;
+    width: 100%;
+    position: relative;
+    border-radius: 0.375rem; /* Tailwind rounded-lg equivalent */
+    overflow: hidden;
+  }
+
+  .table-container {
+    height: 30%;
+    width: 100%;
+    position: relative;
+    border-radius: 0.375rem; /* Tailwind rounded-lg equivalent */
+    overflow-y: auto;
+  }
+
   main {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    height: 100vh;
   }
 
-  @media (min-width: 768px) {
-    main {
-      flex-direction: row;
-    }
-  }
-
-  .container {
-    max-width: 1200px;
+  .maplibregl-ctrl-top-right {
+    top: 10px; /* Adjust position if needed */
+    right: 10px;
   }
 </style>

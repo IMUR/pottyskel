@@ -1,5 +1,9 @@
 const geoapifyApiKey = "52e42fd1727343ddb979120e8c9d473c";
 
+export const getMapStyleUrl = () => {
+  return `https://maps.geoapify.com/v1/styles/positron/style.json?apiKey=${geoapifyApiKey}`;
+};
+
 export const getCoordinates = async (address: string) => {
   const response = await fetch(
     `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(
@@ -31,4 +35,18 @@ export const getAutocompleteSuggestions = async (query: string) => {
   }
   const data = await response.json();
   return data.features.map((feature: any) => feature.properties.formatted);
+};
+
+export const getUserLocation = async () => {
+  const response = await fetch(
+    `https://api.geoapify.com/v1/ipinfo?&apiKey=${geoapifyApiKey}`
+  );
+  if (!response.ok) {
+    throw new Error("Failed to fetch user location");
+  }
+  const data = await response.json();
+  return {
+    lat: data.location.latitude,
+    lon: data.location.longitude,
+  };
 };

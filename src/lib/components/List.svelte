@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
   import type { Potty } from '$lib/types';
 
   export let potties: Potty[];
@@ -26,3 +26,4 @@
     {/each}
   </tbody>
 </table>
+ -->
