@@ -44,25 +44,24 @@
     map.addControl(navControl, 'top-right');
     map.addControl(geolocateControl, 'top-right');
 
-    // Trigger geolocation on map load
     map.on('load', () => {
       geolocateControl.trigger();
-    });
 
-    geolocateControl.on('geolocate', (e) => {
-      const { longitude, latitude } = e.coords;
-      map.setCenter([longitude, latitude]);
-      new maplibregl.Marker()
-        .setLngLat([longitude, latitude])
-        .addTo(map);
-    });
+      geolocateControl.on('geolocate', (e) => {
+        const { longitude, latitude } = e.coords;
+        map.setCenter([longitude, latitude]);
+        new maplibregl.Marker({ color: 'blue' })
+          .setLngLat([longitude, latitude])
+          .addTo(map);
+      });
 
-    potties.forEach((potty) => {
-      const marker = new maplibregl.Marker()
-        .setLngLat([potty.longitude, potty.latitude])
-        .addTo(map);
-      marker.getElement().addEventListener('click', () => {
-        // Handle marker click
+      potties.forEach((potty) => {
+        const marker = new maplibregl.Marker({ color: 'red' })
+          .setLngLat([potty.longitude, potty.latitude])
+          .addTo(map);
+        marker.getElement().addEventListener('click', () => {
+          // Handle marker click
+        });
       });
     });
   }
