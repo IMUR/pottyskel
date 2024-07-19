@@ -16,64 +16,49 @@
       initializeMap();
     } catch (error) {
       console.error('Error fetching potties:', error);
-      // TODO: Add user-facing error handling
     }
   });
 
   function initializeMap() {
-    createMap();
-    const geolocateControl = addMapControls();
-    setupGeolocate(geolocateControl);
-    addPottyMarkers();
-  }
-
-  function createMap() {
     map = new maplibregl.Map({
       container: 'map',
       style: getMapStyleUrl(),
       center: [0, 0],
       zoom: 12
     });
-  }
 
-  function addMapControls() {
     const navControl = new maplibregl.NavigationControl();
     const geolocateControl = new maplibregl.GeolocateControl({
       positionOptions: { enableHighAccuracy: true },
       trackUserLocation: true,
       showUserLocation: true
     });
+
     map.addControl(navControl, 'top-right');
     map.addControl(geolocateControl, 'top-right');
-    return geolocateControl;
-  }
 
-  function setupGeolocate(geolocateControl: maplibregl.GeolocateControl) {
-    map.on('load', () => geolocateControl.trigger());
-    geolocateControl.on('geolocate', handleGeolocate);
-  }
+    map.on('load', () => {
+      geolocateControl.trigger();
+      addPottyMarkers();
+    });
 
-  function handleGeolocate(e: GeolocationPosition) {
-    const { longitude, latitude } = e.coords;
-    map.setCenter([longitude, latitude]);
-    new maplibregl.Marker({ color: 'blue' })
-      .setLngLat([longitude, latitude])
-      .addTo(map);
+    geolocateControl.on('geolocate', (e) => {
+      const { longitude, latitude } = e.coords;
+      map.setCenter([longitude, latitude]);
+    });
   }
 
   function addPottyMarkers() {
-    potties.forEach(addPottyMarker);
-  }
-
-  function addPottyMarker(potty: Potty) {
-    if (isValidCoordinate(potty)) {
-      new maplibregl.Marker({ color: 'red' })
-        .setLngLat([potty.longitude, potty.latitude])
-        .addTo(map)
-        .getElement().addEventListener('click', () => handleMarkerClick(potty));
-    } else {
-      console.error('Invalid coordinates for potty:', potty);
-    }
+    potties.forEach(potty => {
+      if (isValidCoordinate(potty)) {
+        new maplibregl.Marker({ color: 'red' })
+          .setLngLat([potty.longitude, potty.latitude])
+          .addTo(map)
+          .getElement().addEventListener('click', () => handleMarkerClick(potty));
+      } else {
+        console.error('Invalid coordinates for potty:', potty);
+      }
+    });
   }
 
   function isValidCoordinate(potty: Potty): boolean {
@@ -83,7 +68,6 @@
 
   function handleMarkerClick(potty: Potty) {
     console.log('Potty clicked:', potty);
-    // TODO: Implement marker click functionality (e.g., show popup, highlight table row)
   }
 
   function toggleForm() {
@@ -130,3 +114,10 @@
     </div>
   {/if}
 </main>
+
+<style>
+  .map-container {
+    height: 100%;
+    width: 100%;
+  }
+</style>
