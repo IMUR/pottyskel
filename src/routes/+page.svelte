@@ -27,10 +27,10 @@
 
   function initializeMap() {
     map = new maplibregl.Map({
-      container: 'map-container',
+      container: 'map',
       style: getMapStyleUrl(),
       center: [0, 0],
-      zoom: 2
+      zoom: 12
     });
 
     const navControl = new maplibregl.NavigationControl();
@@ -45,23 +45,25 @@
     map.addControl(navControl, 'top-right');
     map.addControl(geolocateControl, 'top-right');
 
-    // Trigger geolocation on map load
     map.on('load', () => {
       geolocateControl.trigger();
+    });
 
-      geolocateControl.on('geolocate', (e) => {
-        const { longitude, latitude } = e.coords;
-        map.setCenter([longitude, latitude]);
-        new maplibregl.Marker({ color: 'blue' })
-          .setLngLat([longitude, latitude])
-          .addTo(map);
-      });
+    geolocateControl.on('geolocate', (e) => {
+      const { longitude, latitude } = e.coords;
+      map.setCenter([longitude, latitude]);
+      new maplibregl.Marker({ color: 'blue' })
+        .setLngLat([longitude, latitude])
+        .addTo(map);
+    });
 
-      potties.forEach((potty) => {
-        new maplibregl.Marker({ color: 'red' })
-          .setLngLat([potty.longitude, potty.latitude])
-          .addTo(map);
-      });
+    potties.forEach((potty) => {
+      new maplibregl.Marker({ color: 'red' })
+        .setLngLat([potty.longitude, potty.latitude])
+        .addTo(map)
+        .getElement().addEventListener('click', () => {
+          // Handle marker click
+        });
     });
   }
 
@@ -76,26 +78,15 @@
 
 <main class="container mx-auto p-4 flex flex-col items-center">
   <div class="w-full max-w-3xl h-full flex flex-col bg-gray-100 rounded-lg overflow-hidden">
-    <div id="map-container" class="map-container"></div>
-    <div class="table-container w-full overflow-auto">
+    <div id="map" class="map-container h-3/4"></div>
+    <div class="table-container h-1/4 w-full overflow-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Name
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Address
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Rule
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Notes
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Type
-            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rule</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
@@ -105,7 +96,6 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyAddress}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyRule}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyNotes}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyType}</td>
             </tr>
           {/each}
         </tbody>
@@ -123,22 +113,6 @@
 </main>
 
 <style>
-  .map-container {
-    height: 70%;
-    width: 100%;
-    position: relative;
-    border-radius: 0.375rem; /* Tailwind rounded-lg equivalent */
-    overflow: hidden;
-  }
-
-  .table-container {
-    height: 30%;
-    width: 100%;
-    position: relative;
-    border-radius: 0.375rem; /* Tailwind rounded-lg equivalent */
-    overflow-y: auto;
-  }
-
   main {
     height: 100vh;
   }
