@@ -1,13 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import maplibregl from 'maplibre-gl';
-  import Form from '$lib/components/Form.svelte';
   import type { Potty } from '$lib/types';
   import { getMapStyleUrl } from '$lib/utils/geoapify';
   import { getPotties } from '$lib/utils/api';
 
   let potties: Potty[] = [];
-  let showForm = false;
   let map: maplibregl.Map;
 
   onMount(async () => {
@@ -50,32 +48,14 @@
 
   function addPottyMarkers() {
     potties.forEach(potty => {
-      if (isValidCoordinate(potty)) {
+      if (potty.latitude >= -90 && potty.latitude <= 90 && potty.longitude >= -180 && potty.longitude <= 180) {
         new maplibregl.Marker({ color: 'red' })
           .setLngLat([potty.longitude, potty.latitude])
-          .addTo(map)
-          .getElement().addEventListener('click', () => handleMarkerClick(potty));
+          .addTo(map);
       } else {
         console.error('Invalid coordinates for potty:', potty);
       }
     });
-  }
-
-  function isValidCoordinate(potty: Potty): boolean {
-    return potty.latitude >= -90 && potty.latitude <= 90 && 
-           potty.longitude >= -180 && potty.longitude <= 180;
-  }
-
-  function handleMarkerClick(potty: Potty) {
-    console.log('Potty clicked:', potty);
-  }
-
-  function toggleForm() {
-    showForm = !showForm;
-  }
-
-  function closeForm() {
-    showForm = false;
   }
 </script>
 
@@ -105,19 +85,4 @@
       </table>
     </div>
   </div>
-  <button on:click={toggleForm} class="bg-blue-500 text-white px-4 py-2 rounded-md mt-4">Add Potty</button>
-  {#if showForm}
-    <div class="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
-      <div class="bg-white p-4 rounded-lg shadow-lg w-96">
-        <Form on:closeForm={closeForm} />
-      </div>
-    </div>
-  {/if}
 </main>
-
-<style>
-  .map-container {
-    height: 100%;
-    width: 100%;
-  }
-</style>

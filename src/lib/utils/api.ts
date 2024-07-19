@@ -1,6 +1,5 @@
 import type { Potty } from "$lib/types";
 
-// Utility functions to interact with the potty API
 export const getPotties = async (): Promise<Potty[]> => {
   const response = await fetch("/api/potties");
   if (!response.ok) {

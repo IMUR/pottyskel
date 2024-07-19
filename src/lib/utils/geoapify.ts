@@ -1,7 +1,7 @@
 const geoapifyApiKey = "52e42fd1727343ddb979120e8c9d473c";
 
 export const getMapStyleUrl = () => {
-  return `https://maps.geoapify.com/v1/styles/positron/style.json?apiKey=${geoapifyApiKey}`;
+  return `https://maps.geoapify.com/v1/styles/klokantech-basic/style.json?apiKey=${geoapifyApiKey}`;
 };
 
 export const getCoordinates = async (address: string) => {
