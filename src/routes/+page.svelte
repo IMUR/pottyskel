@@ -4,67 +4,86 @@
   import Form from '$lib/components/Form.svelte';
   import type { Potty } from '$lib/types';
   import { getMapStyleUrl } from '$lib/utils/geoapify';
+  import { getPotties } from '$lib/utils/api';
 
   let potties: Potty[] = [];
   let showForm = false;
-
-  async function fetchPotties() {
-    const response = await fetch('/api/potties');
-    if (!response.ok) throw new Error('Failed to fetch potties');
-    return response.json();
-  }
+  let map: maplibregl.Map;
 
   onMount(async () => {
     try {
-      potties = await fetchPotties();
+      potties = await getPotties();
       initializeMap();
     } catch (error) {
       console.error('Error fetching potties:', error);
+      // TODO: Add user-facing error handling
     }
   });
 
-  let map: maplibregl.Map;
-
   function initializeMap() {
+    createMap();
+    const geolocateControl = addMapControls();
+    setupGeolocate(geolocateControl);
+    addPottyMarkers();
+  }
+
+  function createMap() {
     map = new maplibregl.Map({
       container: 'map',
       style: getMapStyleUrl(),
       center: [0, 0],
       zoom: 12
     });
+  }
 
+  function addMapControls() {
     const navControl = new maplibregl.NavigationControl();
     const geolocateControl = new maplibregl.GeolocateControl({
-      positionOptions: {
-        enableHighAccuracy: true
-      },
+      positionOptions: { enableHighAccuracy: true },
       trackUserLocation: true,
       showUserLocation: true
     });
-
     map.addControl(navControl, 'top-right');
     map.addControl(geolocateControl, 'top-right');
+    return geolocateControl;
+  }
 
-    map.on('load', () => {
-      geolocateControl.trigger();
-    });
+  function setupGeolocate(geolocateControl: maplibregl.GeolocateControl) {
+    map.on('load', () => geolocateControl.trigger());
+    geolocateControl.on('geolocate', handleGeolocate);
+  }
 
-    geolocateControl.on('geolocate', (e) => {
-      const { longitude, latitude } = e.coords;
-      map.setCenter([longitude, latitude]);
-      new maplibregl.Marker({ color: 'blue' })
-        .setLngLat([longitude, latitude])
-        .addTo(map);
-    });
+  function handleGeolocate(e: GeolocationPosition) {
+    const { longitude, latitude } = e.coords;
+    map.setCenter([longitude, latitude]);
+    new maplibregl.Marker({ color: 'blue' })
+      .setLngLat([longitude, latitude])
+      .addTo(map);
+  }
 
-    potties.forEach((potty) => {
+  function addPottyMarkers() {
+    potties.forEach(addPottyMarker);
+  }
+
+  function addPottyMarker(potty: Potty) {
+    if (isValidCoordinate(potty)) {
       new maplibregl.Marker({ color: 'red' })
         .setLngLat([potty.longitude, potty.latitude])
         .addTo(map)
-        .getElement().addEventListener('click', () => {
-          // Handle marker click
-        });
-    });
+        .getElement().addEventListener('click', () => handleMarkerClick(potty));
+    } else {
+      console.error('Invalid coordinates for potty:', potty);
+    }
+  }
+
+  function isValidCoordinate(potty: Potty): boolean {
+    return potty.latitude >= -90 && potty.latitude <= 90 && 
+           potty.longitude >= -180 && potty.longitude <= 180;
+  }
+
+  function handleMarkerClick(potty: Potty) {
+    console.log('Potty clicked:', potty);
+    // TODO: Implement marker click functionality (e.g., show popup, highlight table row)
   }
 
   function toggleForm() {
@@ -76,9 +95,9 @@
   }
 </script>
 
-<main class="container mx-auto p-4 flex flex-col items-center">
+<main class="container mx-auto p-4 flex flex-col items-center h-screen">
   <div class="w-full max-w-3xl h-full flex flex-col bg-gray-100 rounded-lg overflow-hidden">
-    <div id="map" class="map-container h-3/4"></div>
+    <div id="map" class="map-container flex-grow h-3/4"></div>
     <div class="table-container h-1/4 w-full overflow-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -92,10 +111,10 @@
         <tbody class="bg-white divide-y divide-gray-200">
           {#each potties as potty}
             <tr>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyName}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyAddress}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyRule}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyNotes}</td>
+              <td class="px-6 py-4 text-sm text-gray-500 break-words">{potty.pottyName}</td>
+              <td class="px-6 py-4 text-sm text-gray-500 break-words">{potty.pottyAddress}</td>
+              <td class="px-6 py-4 text-sm text-gray-500 break-words">{potty.pottyRule}</td>
+              <td class="px-6 py-4 text-sm text-gray-500 break-words">{potty.pottyNotes}</td>
             </tr>
           {/each}
         </tbody>
@@ -111,9 +130,3 @@
     </div>
   {/if}
 </main>
-
-<style>
-  main {
-    height: 100vh;
-  }
-</style>

@@ -1,4 +1,4 @@
-import type { RequestHandler } from "@sveltejs/kit";
+/* import type { RequestHandler } from "@sveltejs/kit";
 import { json } from "@sveltejs/kit";
 import fs from "fs";
 import path from "path";
@@ -29,3 +29,4 @@ export const POST: RequestHandler = async ({ request }) => {
     return json({ error: "Failed to add potty" }, { status: 500 });
   }
 };
+ */

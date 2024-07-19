@@ -16,5 +16,23 @@
     "pottyType": "Retail Store",
     "latitude": 34.1501534,
     "longitude": -118.44234422724307
+  },
+  {
+    "pottyName": "Home",
+    "pottyAddress": "314 Mesa Road, Los Angeles, CA 90402, United States of America",
+    "pottyRule": "Call or Text",
+    "pottyNotes": "my number",
+    "pottyType": "General",
+    "latitude": 34.0308136,
+    "longitude": -118.51507189024846
+  },
+  {
+    "pottyName": "Home Depot",
+    "pottyAddress": "Home Depot Place, Los Angeles, CA 91406, United States of America",
+    "pottyRule": "Free Access",
+    "pottyNotes": "Back right",
+    "pottyType": "Hardware Store",
+    "latitude": 34.223269,
+    "longitude": -118.484982
   }
 ]
