@@ -36,17 +36,3 @@ export const getAutocompleteSuggestions = async (query: string) => {
   const data = await response.json();
   return data.features.map((feature: any) => feature.properties.formatted);
 };
-
-export const getUserLocation = async () => {
-  const response = await fetch(
-    `https://api.geoapify.com/v1/ipinfo?&apiKey=${geoapifyApiKey}`
-  );
-  if (!response.ok) {
-    throw new Error("Failed to fetch user location");
-  }
-  const data = await response.json();
-  return {
-    lat: data.location.latitude,
-    lon: data.location.longitude,
-  };
-};

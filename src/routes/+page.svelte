@@ -3,6 +3,7 @@
   import maplibregl from 'maplibre-gl';
   import Form from '$lib/components/Form.svelte';
   import type { Potty } from '$lib/types';
+  import { getMapStyleUrl } from '$lib/utils/geoapify';
 
   let potties: Potty[] = [];
   let showForm = false;
@@ -26,8 +27,8 @@
 
   function initializeMap() {
     map = new maplibregl.Map({
-      container: 'map',
-      style: `https://maps.geoapify.com/v1/styles/positron/style.json?apiKey=52e42fd1727343ddb979120e8c9d473c`,
+      container: 'map-container',
+      style: getMapStyleUrl(),
       center: [0, 0],
       zoom: 2
     });
@@ -44,6 +45,7 @@
     map.addControl(navControl, 'top-right');
     map.addControl(geolocateControl, 'top-right');
 
+    // Trigger geolocation on map load
     map.on('load', () => {
       geolocateControl.trigger();
 
@@ -56,12 +58,9 @@
       });
 
       potties.forEach((potty) => {
-        const marker = new maplibregl.Marker({ color: 'red' })
+        new maplibregl.Marker({ color: 'red' })
           .setLngLat([potty.longitude, potty.latitude])
           .addTo(map);
-        marker.getElement().addEventListener('click', () => {
-          // Handle marker click
-        });
       });
     });
   }
@@ -77,7 +76,7 @@
 
 <main class="container mx-auto p-4 flex flex-col items-center">
   <div class="w-full max-w-3xl h-full flex flex-col bg-gray-100 rounded-lg overflow-hidden">
-    <div id="map" class="map-container"></div>
+    <div id="map-container" class="map-container"></div>
     <div class="table-container w-full overflow-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -142,10 +141,5 @@
 
   main {
     height: 100vh;
-  }
-
-  .maplibregl-ctrl-top-right {
-    top: 10px; /* Adjust position if needed */
-    right: 10px;
   }
 </style>
