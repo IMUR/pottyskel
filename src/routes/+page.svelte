@@ -4,15 +4,43 @@
   import Form from '$lib/components/Form.svelte';
   import type { Potty } from '$lib/types';
   import { getMapStyleUrl } from '$lib/utils/geoapify';
+  import { GeoapifyGeocoderAutocomplete } from '@geoapify/geocoder-autocomplete';
+  import '@geoapify/geocoder-autocomplete/styles/minimal.css';
 
   let potties: Potty[] = [];
   let showForm = false;
+  let userLocation = { latitude: 0, longitude: 0 };
   let map: maplibregl.Map;
+  let autocomplete;
 
   async function fetchPotties() {
     const response = await fetch('/api/potties');
     if (!response.ok) throw new Error('Failed to fetch potties');
     return response.json();
+  }
+
+  function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // metres
+    const φ1 = lat1 * Math.PI/180; // φ, λ in radians
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon1-lon2) * Math.PI/180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    const d = R * c; // in metres
+    return d;
+  }
+
+  function sortPottiesByDistance() {
+    potties.sort((a, b) => {
+      const distanceA = calculateDistance(userLocation.latitude, userLocation.longitude, a.latitude, a.longitude);
+      const distanceB = calculateDistance(userLocation.latitude, userLocation.longitude, b.latitude, b.longitude);
+      return distanceA - distanceB;
+    });
   }
 
   onMount(async () => {
@@ -34,7 +62,9 @@
 
     const navControl = new maplibregl.NavigationControl();
     const geolocateControl = new maplibregl.GeolocateControl({
-      positionOptions: { enableHighAccuracy: true },
+      positionOptions: {
+        enableHighAccuracy: true
+      },
       trackUserLocation: true,
       showUserLocation: true
     });
@@ -44,31 +74,24 @@
 
     map.on('load', () => {
       geolocateControl.trigger();
-      addMarkers();
     });
 
     geolocateControl.on('geolocate', (e) => {
       const { longitude, latitude } = e.coords;
+      userLocation = { latitude, longitude };
       map.setCenter([longitude, latitude]);
+      sortPottiesByDistance();
+      addPottyMarkers();
     });
   }
 
-  function addMarkers() {
+  function addPottyMarkers() {
     potties.forEach((potty) => {
-      if (isValidCoordinate(potty)) {
-        new maplibregl.Marker({ color: 'red' })
-          .setLngLat([potty.longitude, potty.latitude])
-          .addTo(map)
-          .getElement().addEventListener('click', () => handleMarkerClick(potty));
-      } else {
-        console.error('Invalid coordinates for potty:', potty);
-      }
+      new maplibregl.Marker({ color: 'red' })
+        .setLngLat([potty.longitude, potty.latitude])
+        .addTo(map)
+        .getElement().addEventListener('click', () => handleMarkerClick(potty));
     });
-  }
-
-  function isValidCoordinate(potty: Potty): boolean {
-    return potty.latitude >= -90 && potty.latitude <= 90 && 
-           potty.longitude >= -180 && potty.longitude <= 180;
   }
 
   function handleMarkerClick(potty: Potty) {
@@ -83,30 +106,33 @@
     showForm = false;
   }
 
-  function handleNewPotty(event: CustomEvent) {
-    const newPotty: Potty = event.detail;
-    potties = [...potties, newPotty];
-    addNewPottyMarker(newPotty);
+  function initializeAutocomplete() {
+    autocomplete = new GeoapifyGeocoderAutocomplete(
+      document.getElementById("autocomplete"),
+      "YOUR_API_KEY",
+      { proximity: `${userLocation.latitude},${userLocation.longitude}` }
+    );
+
+    autocomplete.on('select', (location) => {
+      console.log(location);
+    });
+
+    autocomplete.on('suggestions', (suggestions) => {
+      console.log(suggestions);
+    });
   }
 
-  function addNewPottyMarker(potty: Potty) {
-    if (isValidCoordinate(potty)) {
-      new maplibregl.Marker({ color: 'red' })
-        .setLngLat([potty.longitude, potty.latitude])
-        .addTo(map)
-        .getElement().addEventListener('click', () => handleMarkerClick(potty));
-    } else {
-      console.error('Invalid coordinates for potty:', potty);
-    }
-  }
+  onMount(() => {
+    initializeAutocomplete();
+  });
 </script>
 
-<main class="container mx-auto p-4 flex flex-col items-center h-screen">
-  <div class="w-full max-w-3xl h-full flex flex-col bg-gray-100 rounded-lg overflow-hidden relative">
-    <div id="map" class="flex-grow h-3/4"></div>
-    <button on:click={toggleForm} class="add-potty-button absolute top-2 left-1/2 transform -translate-x-1/2">Add Potty</button>
-    <div class="flex-grow h-1/4 w-full overflow-auto">
-      <table class="min-w-full divide-y divide-gray-200 table-auto">
+<main class="container mx-auto p-4 flex flex-col items-center">
+  <div class="w-full max-w-3xl h-full flex flex-col bg-gray-100 rounded-lg overflow-hidden">
+    <div id="map" class="map-container h-3/4"></div>
+    <input id="autocomplete" type="text" class="form-input mt-4" placeholder="Search for a location" />
+    <div class="table-container h-1/4 w-full overflow-auto">
+      <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
@@ -118,20 +144,21 @@
         <tbody class="bg-white divide-y divide-gray-200">
           {#each potties as potty}
             <tr>
-              <td class="px-6 py-4 text-sm text-gray-500 break-words">{potty.pottyName}</td>
-              <td class="px-6 py-4 text-sm text-gray-500 break-words">{potty.pottyAddress}</td>
-              <td class="px-6 py-4 text-sm text-gray-500 break-words">{potty.pottyRule}</td>
-              <td class="px-6 py-4 text-sm text-gray-500 break-words">{potty.pottyNotes}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyName}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyAddress}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyRule}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyNotes}</td>
             </tr>
           {/each}
         </tbody>
       </table>
     </div>
   </div>
+  <button on:click={toggleForm} class="bg-gray-200 text-black px-4 py-2 rounded-md mt-4 absolute top-4 left-1/2 transform -translate-x-1/2">Add Potty</button>
   {#if showForm}
     <div class="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
       <div class="bg-white p-4 rounded-lg shadow-lg w-96">
-        <Form on:closeForm={closeForm} on:newPotty={handleNewPotty} />
+        <Form on:closeForm={closeForm} />
       </div>
     </div>
   {/if}
@@ -141,32 +168,18 @@
   main {
     height: 100vh;
   }
-
-  table {
-    table-layout: auto;
+  .map-container {
+    height: 75%;
+    width: 100%;
   }
-
-  th, td {
-    white-space: normal; /* Allow text to wrap */
-    word-wrap: break-word; /* Ensure long words break to the next line */
+  .table-container {
+    height: 25%;
+    width: 100%;
   }
-
-  .add-potty-button {
-    background-color: rgba(211, 211, 211, 0.4); /* Light grey with 70% opacity */
-    backdrop-filter: blur(5px); /* Blurred background */
-    border: 2px solid #fff; /* White border */
-    color: #000;
-    padding: 0.5rem 1rem;
-    border-radius: 0.8rem;
-    font-size: 1.2rem;
-    cursor: pointer;
-    width: 250px; /* Set a fixed width */
-    height: 60px; /* Set a fixed height */
-    text-align: center;
-    line-height: 0px; /* Vertically center text */
-  }
-
-  .add-potty-button:hover {
-    background-color: rgba(165, 165, 165, 0.5); /* Slightly less transparent on hover */
+  .form-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
   }
 </style>
