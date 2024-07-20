@@ -25,7 +25,7 @@
         longitude: coordinates.lon,
       };
       await addPotty(newPotty);
-      dispatch('refreshPotties');
+      dispatch('newPotty', newPotty);
       closeForm();
     } catch (error) {
       console.error('Error adding potty:', error);

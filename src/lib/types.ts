@@ -7,3 +7,8 @@ export interface Potty {
   latitude: number;
   longitude: number;
 }
+
+export interface GeoapifyCoordinates {
+  lat: number;
+  lon: number;
+}
