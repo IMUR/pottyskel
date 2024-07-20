@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
   import { addPotty } from '$lib/utils/api';
   import { getCoordinates, getAutocompleteSuggestions } from '$lib/utils/geoapify';
@@ -25,7 +25,7 @@
         longitude: coordinates.lon,
       };
       await addPotty(newPotty);
-      dispatch('newPotty', newPotty);
+      dispatch('refreshPotties');
       closeForm();
     } catch (error) {
       console.error('Error adding potty:', error);
@@ -168,3 +168,4 @@
     background-color: #f0f0f0;
   }
 </style>
+ -->
