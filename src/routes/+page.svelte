@@ -101,11 +101,11 @@
   }
 </script>
 
-<main class="container mx-auto p-4 flex flex-col items-center">
+<main class="container mx-auto p-4 flex flex-col items-center h-screen">
   <div class="w-full max-w-3xl h-full flex flex-col bg-gray-100 rounded-lg overflow-hidden">
-    <div id="map" class="map-container h-3/4"></div>
-    <div class="table-container h-1/4 w-full overflow-auto">
-      <table class="min-w-full divide-y divide-gray-200">
+    <div id="map" class="flex-grow h-3/4"></div>
+    <div class="flex-grow h-1/4 w-full overflow-auto">
+      <table class="min-w-full divide-y divide-gray-200 table-auto">
         <thead class="bg-gray-50">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
@@ -117,10 +117,10 @@
         <tbody class="bg-white divide-y divide-gray-200">
           {#each potties as potty}
             <tr>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyName}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyAddress}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyRule}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyNotes}</td>
+              <td class="px-6 py-4 text-sm text-gray-500 break-words">{potty.pottyName}</td>
+              <td class="px-6 py-4 text-sm text-gray-500 break-words">{potty.pottyAddress}</td>
+              <td class="px-6 py-4 text-sm text-gray-500 break-words">{potty.pottyRule}</td>
+              <td class="px-6 py-4 text-sm text-gray-500 break-words">{potty.pottyNotes}</td>
             </tr>
           {/each}
         </tbody>
@@ -140,5 +140,26 @@
 <style>
   main {
     height: 100vh;
+  }
+
+  .map-container {
+    height: 75%;
+    width: 100%;
+  }
+
+  .table-container {
+    height: 25%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  table {
+    table-layout: auto;
+  }
+
+  th, td {
+    white-space: normal; /* Allow text to wrap */
+    word-wrap: break-word; /* Ensure long words break to the next line */
   }
 </style>
