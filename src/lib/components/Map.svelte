@@ -5,9 +5,7 @@
   import { getMapStyleUrl } from '$lib/utils/geoapify';
 
   export let potties: Potty[] = [];
-
   let map: maplibregl.Map;
-  let popups: { [key: string]: maplibregl.Popup } = {}; // Store popups by marker ID
 
   onMount(() => {
     initializeMap();
@@ -15,7 +13,7 @@
 
   function initializeMap() {
     map = new maplibregl.Map({
-      container: 'map',
+      container: 'my-map',
       style: getMapStyleUrl(),
       center: [0, 0],
       zoom: 12
@@ -39,25 +37,21 @@
     geolocateControl.on('geolocate', (e) => {
       const { longitude, latitude } = e.coords;
       map.setCenter([longitude, latitude]);
+      new maplibregl.Marker({ color: 'blue' })
+        .setLngLat([longitude, latitude])
+        .addTo(map);
     });
   }
 
   function addMarkers() {
     potties.forEach((potty) => {
       if (isValidCoordinate(potty)) {
-        const el = document.createElement('div');
-        el.className = 'marker';
-        el.style.backgroundColor = 'red';
-        el.style.width = '20px';
-        el.style.height = '20px';
-        el.style.borderRadius = '50%';
-        el.style.cursor = 'pointer';
-
-        el.addEventListener('click', () => handleMarkerClick(potty));
-
-        new maplibregl.Marker(el)
+        const marker = new maplibregl.Marker({ color: 'red' })
           .setLngLat([potty.longitude, potty.latitude])
           .addTo(map);
+
+        marker.getElement().style.cursor = 'pointer';
+        marker.getElement().addEventListener('click', () => handleMarkerClick(potty));
       } else {
         console.error('Invalid coordinates for potty:', potty);
       }
@@ -65,35 +59,28 @@
   }
 
   function isValidCoordinate(potty: Potty): boolean {
-    return potty.latitude >= -90 && potty.latitude <= 90 &&
+    return potty.latitude >= -90 && potty.latitude <= 90 && 
            potty.longitude >= -180 && potty.longitude <= 180;
   }
 
   function handleMarkerClick(potty: Potty) {
-    // Remove existing popup if present
-    if (popups[potty.id]) {
-      popups[potty.id].remove();
-    }
+    const popupContent = `
+      <div class="marker-flag">
+        <div><strong>${potty.pottyName}</strong></div>
+        <div><a href="https://www.openstreetmap.org/search?query=${encodeURIComponent(potty.pottyAddress)}" target="_blank">${potty.pottyAddress}</a></div>
+        <div>${potty.pottyRule}</div>
+        <div>${potty.pottyNotes}</div>
+      </div>
+    `;
 
-    // Create a new popup
     const popup = new maplibregl.Popup({ offset: 25 })
       .setLngLat([potty.longitude, potty.latitude])
-      .setHTML(`
-        <div>
-          <strong>${potty.pottyName}</strong><br>
-          ${potty.pottyAddress}<br>
-          ${potty.pottyRule}<br>
-          ${potty.pottyNotes}
-        </div>
-      `)
+      .setHTML(popupContent)
       .addTo(map);
-
-    // Store the popup in the popups object
-    popups[potty.id] = popup;
   }
 </script>
 
-<div id="map" class="map-container"></div>
+<div id="my-map" class="map-container"></div>
 
 <style>
   .map-container {
@@ -101,7 +88,19 @@
     width: 100%;
   }
 
-  .marker {
-    cursor: pointer;
+  .marker-flag {
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .marker-flag a {
+    color: #007bff;
+    text-decoration: none;
+  }
+
+  .marker-flag a:hover {
+    text-decoration: underline;
   }
 </style>
