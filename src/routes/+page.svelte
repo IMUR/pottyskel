@@ -184,12 +184,12 @@
   }
 
   .potty-button {
-    height: 70px;
+    height: 90px;
     background: none;
     backdrop-filter: blur(5px);
     border: 2px solid #fff;
     margin: 2px 0;
-    width: calc(85% - 10px); /* Ensure buttons do not exceed the container */
+    width: calc(65% - 10px); /* Ensure buttons do not exceed the container */
     transition: transform 0.3s;
     overflow: hidden;
     background-color: rgba(211, 211, 211, 0.8); /* White background with opacity */
@@ -222,7 +222,7 @@
 
   .potty-button .grid > div {
     overflow: auto;
-    text-overflow: wrap;
+    text-overflow: initialz;
     white-space: wrap;
   }
 
