@@ -130,7 +130,7 @@
 <main class="container mx-auto p-4 flex flex-col items-center h-screen relative">
   <div id="map" class="flex-grow w-full rounded-xl"></div>
   <button on:click={toggleForm} class="add-potty-button absolute top-20 left-1/2 transform -translate-x-1/2">Add Potty</button>
-  <div class="potty-list-container fixed bottom-0 left-1/2 transform -translate-x-1/2 w-3/4 h-1/3 overflow-scroll flex flex-col items-center bg-gradient-to-t from-transparent to-white">
+  <div class="potty-list-container fixed bottom-0 left-1/2 transform -translate-x-1/2 w-3/4 h-1/4 overflow-scroll flex flex-col items-center bg-gradient-to-t from-transparent to-white">
     {#each potties as potty}
       <button on:click={() => handleMarkerClick(potty)} class="potty-button m-2 p-2 w-full text-left">
         <div class="grid grid-cols-4 gap-3">
@@ -214,7 +214,7 @@
 
   .potty-button .grid {
     display: grid;
-    grid-template-columns: 15% 50% 10% 15%;
+    grid-template-columns: 18% 50% 10% 15%;
     align-items: center;
     width: 100%;
     white-space: wrap;
@@ -222,7 +222,7 @@
 
   .potty-button .grid > div {
     overflow: auto;
-    text-overflow: initialz;
+    text-overflow: initial;
     white-space: wrap;
   }
 
