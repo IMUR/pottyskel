@@ -102,8 +102,9 @@
 </script>
 
 <main class="container mx-auto p-4 flex flex-col items-center h-screen">
-  <div class="w-full max-w-3xl h-full flex flex-col bg-gray-100 rounded-lg overflow-hidden">
+  <div class="w-full max-w-3xl h-full flex flex-col bg-gray-100 rounded-lg overflow-hidden relative">
     <div id="map" class="flex-grow h-3/4"></div>
+    <button on:click={toggleForm} class="add-potty-button absolute top-2 left-1/2 transform -translate-x-1/2">Add Potty</button>
     <div class="flex-grow h-1/4 w-full overflow-auto">
       <table class="min-w-full divide-y divide-gray-200 table-auto">
         <thead class="bg-gray-50">
@@ -127,7 +128,6 @@
       </table>
     </div>
   </div>
-  <button on:click={toggleForm} class="bg-blue-500 text-white px-4 py-2 rounded-md mt-4">Add Potty</button>
   {#if showForm}
     <div class="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
       <div class="bg-white p-4 rounded-lg shadow-lg w-96">
@@ -142,18 +142,6 @@
     height: 100vh;
   }
 
-  .map-container {
-    height: 75%;
-    width: 100%;
-  }
-
-  .table-container {
-    height: 25%;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
   table {
     table-layout: auto;
   }
@@ -161,5 +149,24 @@
   th, td {
     white-space: normal; /* Allow text to wrap */
     word-wrap: break-word; /* Ensure long words break to the next line */
+  }
+
+  .add-potty-button {
+    background-color: rgba(211, 211, 211, 0.4); /* Light grey with 70% opacity */
+    backdrop-filter: blur(5px); /* Blurred background */
+    border: 2px solid #fff; /* White border */
+    color: #000;
+    padding: 0.5rem 1rem;
+    border-radius: 0.8rem;
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 250px; /* Set a fixed width */
+    height: 60px; /* Set a fixed height */
+    text-align: center;
+    line-height: 0px; /* Vertically center text */
+  }
+
+  .add-potty-button:hover {
+    background-color: rgba(165, 165, 165, 0.5); /* Slightly less transparent on hover */
   }
 </style>
