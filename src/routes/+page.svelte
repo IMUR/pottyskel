@@ -4,43 +4,16 @@
   import Form from '$lib/components/Form.svelte';
   import type { Potty } from '$lib/types';
   import { getMapStyleUrl } from '$lib/utils/geoapify';
-  import { GeoapifyGeocoderAutocomplete } from '@geoapify/geocoder-autocomplete';
-  import '@geoapify/geocoder-autocomplete/styles/minimal.css';
 
   let potties: Potty[] = [];
   let showForm = false;
-  let userLocation = { latitude: 0, longitude: 0 };
   let map: maplibregl.Map;
-  let autocomplete;
+  let userLocation: { longitude: number; latitude: number } | null = null;
 
   async function fetchPotties() {
     const response = await fetch('/api/potties');
     if (!response.ok) throw new Error('Failed to fetch potties');
     return response.json();
-  }
-
-  function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // metres
-    const φ1 = lat1 * Math.PI/180; // φ, λ in radians
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lon1-lon2) * Math.PI/180;
-
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-    const d = R * c; // in metres
-    return d;
-  }
-
-  function sortPottiesByDistance() {
-    potties.sort((a, b) => {
-      const distanceA = calculateDistance(userLocation.latitude, userLocation.longitude, a.latitude, a.longitude);
-      const distanceB = calculateDistance(userLocation.latitude, userLocation.longitude, b.latitude, b.longitude);
-      return distanceA - distanceB;
-    });
   }
 
   onMount(async () => {
@@ -62,9 +35,7 @@
 
     const navControl = new maplibregl.NavigationControl();
     const geolocateControl = new maplibregl.GeolocateControl({
-      positionOptions: {
-        enableHighAccuracy: true
-      },
+      positionOptions: { enableHighAccuracy: true },
       trackUserLocation: true,
       showUserLocation: true
     });
@@ -74,28 +45,39 @@
 
     map.on('load', () => {
       geolocateControl.trigger();
+      addMarkers();
     });
 
     geolocateControl.on('geolocate', (e) => {
       const { longitude, latitude } = e.coords;
-      userLocation = { latitude, longitude };
+      userLocation = { longitude, latitude };
       map.setCenter([longitude, latitude]);
       sortPottiesByDistance();
-      addPottyMarkers();
     });
   }
 
-  function addPottyMarkers() {
+  function addMarkers() {
     potties.forEach((potty) => {
-      new maplibregl.Marker({ color: 'red' })
-        .setLngLat([potty.longitude, potty.latitude])
-        .addTo(map)
-        .getElement().addEventListener('click', () => handleMarkerClick(potty));
+      if (isValidCoordinate(potty)) {
+        new maplibregl.Marker({ color: 'red' })
+          .setLngLat([potty.longitude, potty.latitude])
+          .addTo(map)
+          .getElement().addEventListener('click', () => handleMarkerClick(potty));
+      } else {
+        console.error('Invalid coordinates for potty:', potty);
+      }
     });
+  }
+
+  function isValidCoordinate(potty: Potty): boolean {
+    return potty.latitude >= -90 && potty.latitude <= 90 && 
+           potty.longitude >= -180 && potty.longitude <= 180;
   }
 
   function handleMarkerClick(potty: Potty) {
     console.log('Potty clicked:', potty);
+    map.setCenter([potty.longitude, potty.latitude]);
+    map.setZoom(15); // Adjust the zoom level as needed
   }
 
   function toggleForm() {
@@ -106,59 +88,64 @@
     showForm = false;
   }
 
-  function initializeAutocomplete() {
-    autocomplete = new GeoapifyGeocoderAutocomplete(
-      document.getElementById("autocomplete"),
-      "YOUR_API_KEY",
-      { proximity: `${userLocation.latitude},${userLocation.longitude}` }
-    );
-
-    autocomplete.on('select', (location) => {
-      console.log(location);
-    });
-
-    autocomplete.on('suggestions', (suggestions) => {
-      console.log(suggestions);
-    });
+  function handleNewPotty(event: CustomEvent) {
+    const newPotty: Potty = event.detail;
+    potties = [...potties, newPotty];
+    addNewPottyMarker(newPotty);
+    sortPottiesByDistance();
   }
 
-  onMount(() => {
-    initializeAutocomplete();
-  });
+  function addNewPottyMarker(potty: Potty) {
+    if (isValidCoordinate(potty)) {
+      new maplibregl.Marker({ color: 'red' })
+        .setLngLat([potty.longitude, potty.latitude])
+        .addTo(map)
+        .getElement().addEventListener('click', () => handleMarkerClick(potty));
+    } else {
+      console.error('Invalid coordinates for potty:', potty);
+    }
+  }
+
+  function sortPottiesByDistance() {
+    if (userLocation) {
+      potties = [...potties].sort((a, b) => {
+        const distanceA = calculateDistance(userLocation!.latitude, userLocation!.longitude, a.latitude, a.longitude);
+        const distanceB = calculateDistance(userLocation!.latitude, userLocation!.longitude, b.latitude, b.longitude);
+        return distanceA - distanceB;
+      });
+    }
+  }
+
+  function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+      0.5 - Math.cos(dLat) / 2 +
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * (1 - Math.cos(dLon)) / 2;
+    return R * 2 * Math.asin(Math.sqrt(a));
+  }
 </script>
 
-<main class="container mx-auto p-4 flex flex-col items-center">
-  <div class="w-full max-w-3xl h-full flex flex-col bg-gray-100 rounded-lg overflow-hidden">
-    <div id="map" class="map-container h-3/4"></div>
-    <input id="autocomplete" type="text" class="form-input mt-4" placeholder="Search for a location" />
-    <div class="table-container h-1/4 w-full overflow-auto">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rule</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          {#each potties as potty}
-            <tr>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyName}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyAddress}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyRule}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{potty.pottyNotes}</td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-    </div>
+<main class="container mx-auto p-4 flex flex-col items-center h-screen relative">
+  <div id="map" class="flex-grow w-full rounded-xl"></div>
+  <button on:click={toggleForm} class="add-potty-button absolute top-20 left-1/2 transform -translate-x-1/2">Add Potty</button>
+  <div class="potty-list-container fixed bottom-0 left-1/2 transform -translate-x-1/2 w-3/4 h-1/3 overflow-scroll flex flex-col items-center bg-gradient-to-t from-transparent to-white">
+    {#each potties as potty}
+      <button on:click={() => handleMarkerClick(potty)} class="potty-button m-2 p-2 w-full text-left">
+        <div class="grid grid-cols-4 gap-3">
+          <div class="font-semibold text-lg text-gray-800">{potty.pottyName}</div>
+          <div class="text-sm text-gray-600">{potty.pottyAddress}</div>
+          <div class="text-sm text-gray-600">{potty.pottyRule}</div>
+          <div class="text-lg text-gray-600">{potty.pottyNotes}</div>
+        </div>
+      </button>
+    {/each}
   </div>
-  <button on:click={toggleForm} class="bg-gray-200 text-black px-4 py-2 rounded-md mt-4 absolute top-4 left-1/2 transform -translate-x-1/2">Add Potty</button>
   {#if showForm}
-    <div class="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
-      <div class="bg-white p-4 rounded-lg shadow-lg w-96">
-        <Form on:closeForm={closeForm} />
+    <div class="form-backdrop fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
+      <div class="form-container p-4 rounded-lg shadow-lg w-96">
+        <Form on:closeForm={closeForm} on:newPotty={handleNewPotty} />
       </div>
     </div>
   {/if}
@@ -168,18 +155,105 @@
   main {
     height: 100vh;
   }
-  .map-container {
-    height: 75%;
+
+  .add-potty-button {
+    background-color: rgba(211, 211, 211, 0.4); /* Light grey with 70% opacity */
+    backdrop-filter: blur(5px); /* Blurred background */
+    border: 2px solid #fff; /* White border */
+    color: #000;
+    padding: 2.5rem 2.5rem;
+    border-radius: 1rem;
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 300px; /* Set a fixed width */
+    height: 60px; /* Set a fixed height */
+    text-align: center;
+    line-height: 0px; /* Vertically center text */
+  }
+
+  .add-potty-button:hover {
+    background-color: rgba(165, 165, 165, 0.5); /* Slightly less transparent on hover */
+  }
+
+  .potty-list-container {
+    background: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
   }
-  .table-container {
-    height: 25%;
-    width: 100%;
+
+  .potty-button {
+    height: 70px;
+    background: none;
+    backdrop-filter: blur(5px);
+    border: 2px solid #fff;
+    margin: 2px 0;
+    width: calc(85% - 10px); /* Ensure buttons do not exceed the container */
+    transition: transform 0.3s;
+    overflow: hidden;
+    background-color: rgba(211, 211, 211, 0.8); /* White background with opacity */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    color: #333; /* Text color */
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
-  .form-input {
+
+  .potty-button:hover {
+    transform: scale(1.01);
+    background-color: rgba(200, 200, 200, 0.9); /* Change background on hover */
+  }
+
+  .potty-button:active {
+    transform: scale(0.95);
+    background-color: rgba(180, 180, 180, 1); /* Change background on active */
+  }
+
+  .potty-button .grid {
+    display: grid;
+    grid-template-columns: 15% 50% 10% 15%;
+    align-items: center;
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    white-space: wrap;
+  }
+
+  .potty-button .grid > div {
+    overflow: auto;
+    text-overflow: wrap;
+    white-space: wrap;
+  }
+
+  .form-backdrop {
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    backdrop-filter: blur(10px); /* Blur effect */
+  }
+
+  .form-container {
+    animation: fadeIn 0.3s ease-out, scaleIn 0.3s ease-out;
+    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+    backdrop-filter: blur(10px); /* Blur effect */
+    padding: 2rem;
+    border-radius: 1rem;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      transform: scale(0.8);
+    }
+    to {
+      transform: scale(1);
+    }
   }
 </style>

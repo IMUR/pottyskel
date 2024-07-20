@@ -34,5 +34,32 @@
     "pottyType": "Hardware Store",
     "latitude": 34.223269,
     "longitude": -118.484982
+  },
+  {
+    "pottyName": "Vons",
+    "pottyAddress": "Vons, 1311 Wilshire Boulevard, Santa Monica, CA 90403, United States of America",
+    "pottyRule": "Door Code",
+    "pottyNotes": "123456",
+    "pottyType": "Supermarket",
+    "latitude": 34.0343657,
+    "longitude": -118.4794544
+  },
+  {
+    "pottyName": "Guitar Center",
+    "pottyAddress": "Guitar Center, West Pico Boulevard, Los Angeles, CA 90064, United States of America",
+    "pottyRule": "Door Code",
+    "pottyNotes": "10831",
+    "pottyType": "Retail Store",
+    "latitude": 34.0395789,
+    "longitude": -118.429643
+  },
+  {
+    "pottyName": "Ace Hardware",
+    "pottyAddress": "2020 South Bundy Drive, Los Angeles, CA 90025, United States of America",
+    "pottyRule": "Door Code",
+    "pottyNotes": "01442",
+    "pottyType": "Hardware Store",
+    "latitude": 34.03365132653062,
+    "longitude": -118.45507675510204
   }
 ]

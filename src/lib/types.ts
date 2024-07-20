@@ -1,4 +1,5 @@
 export interface Potty {
+  id: number;
   pottyName: string;
   pottyAddress: string;
   pottyRule: string;

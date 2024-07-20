@@ -33,7 +33,11 @@
     map.on('load', () => {
       geolocateControl.trigger();
       potties.forEach((potty) => {
-        new maplibregl.Marker({ color: 'red' })
+        const el = document.createElement('div');
+        el.className = 'marker';
+        el.addEventListener('click', () => handleMarkerClick(potty));
+
+        new maplibregl.Marker(el)
           .setLngLat([potty.longitude, potty.latitude])
           .addTo(map);
       });
@@ -47,6 +51,20 @@
         .addTo(map);
     });
   }
+
+  function handleMarkerClick(potty: Potty) {
+    const popup = new maplibregl.Popup({ offset: 25 })
+      .setLngLat([potty.longitude, potty.latitude])
+      .setHTML(`
+        <div>
+          <strong>${potty.pottyName}</strong>
+          <p>${potty.pottyAddress}</p>
+          <p>${potty.pottyRule}</p>
+          <p>${potty.pottyNotes}</p>
+        </div>
+      `)
+      .addTo(map);
+  }
 </script>
 
 <div id="my-map" class="map-container"></div>
@@ -55,5 +73,13 @@
   .map-container {
     height: 100%;
     width: 100%;
+  }
+
+  .marker {
+    width: 25px;
+    height: 25px;
+    background-color: red;
+    border-radius: 50%;
+    cursor: pointer;
   }
 </style>
