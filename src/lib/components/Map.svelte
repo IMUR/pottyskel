@@ -6,6 +6,7 @@
 
   export let potties: Potty[] = [];
   let map: maplibregl.Map;
+  let popup: maplibregl.Popup | null = null;
 
   onMount(() => {
     initializeMap();
@@ -37,9 +38,6 @@
     geolocateControl.on('geolocate', (e) => {
       const { longitude, latitude } = e.coords;
       map.setCenter([longitude, latitude]);
-      new maplibregl.Marker({ color: 'blue' })
-        .setLngLat([longitude, latitude])
-        .addTo(map);
     });
   }
 
@@ -48,10 +46,12 @@
       if (isValidCoordinate(potty)) {
         const marker = new maplibregl.Marker({ color: 'red' })
           .setLngLat([potty.longitude, potty.latitude])
-          .addTo(map);
+          .addTo(map)
+          .getElement();
+          
+        marker.style.cursor = 'pointer';
 
-        marker.getElement().style.cursor = 'pointer';
-        marker.getElement().addEventListener('click', () => handleMarkerClick(potty));
+        marker.addEventListener('click', () => handleMarkerClick(potty));
       } else {
         console.error('Invalid coordinates for potty:', potty);
       }
@@ -64,18 +64,20 @@
   }
 
   function handleMarkerClick(potty: Potty) {
-    const popupContent = `
-      <div class="marker-flag">
-        <div><strong>${potty.pottyName}</strong></div>
-        <div><a href="https://www.openstreetmap.org/search?query=${encodeURIComponent(potty.pottyAddress)}" target="_blank">${potty.pottyAddress}</a></div>
-        <div>${potty.pottyRule}</div>
-        <div>${potty.pottyNotes}</div>
-      </div>
-    `;
-
-    const popup = new maplibregl.Popup({ offset: 25 })
+    console.log('Potty clicked:', potty);
+    if (popup) {
+      popup.remove();
+    }
+    popup = new maplibregl.Popup({ offset: 25 })
       .setLngLat([potty.longitude, potty.latitude])
-      .setHTML(popupContent)
+      .setHTML(`
+        <div>
+          <h3>${potty.pottyName}</h3>
+          <p>${potty.pottyAddress}</p>
+          <p>Rule: ${potty.pottyRule}</p>
+          <p>Notes: ${potty.pottyNotes}</p>
+        </div>
+      `)
       .addTo(map);
   }
 </script>
@@ -86,21 +88,5 @@
   .map-container {
     height: 100%;
     width: 100%;
-  }
-
-  .marker-flag {
-    background: white;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  }
-
-  .marker-flag a {
-    color: #007bff;
-    text-decoration: none;
-  }
-
-  .marker-flag a:hover {
-    text-decoration: underline;
   }
 </style>

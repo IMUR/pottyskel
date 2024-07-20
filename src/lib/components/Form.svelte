@@ -16,6 +16,7 @@
     try {
       const coordinates = await getCoordinates(pottyAddress);
       const newPotty: Potty = {
+        id: crypto.randomUUID(), // Generate a unique ID
         pottyName,
         pottyAddress,
         pottyRule,

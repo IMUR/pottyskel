@@ -1,5 +1,5 @@
-export interface Potty {
-  id: number;
+export type Potty = {
+  id: string;
   pottyName: string;
   pottyAddress: string;
   pottyRule: string;
@@ -7,7 +7,7 @@ export interface Potty {
   pottyType: string;
   latitude: number;
   longitude: number;
-}
+};
 
 export interface GeoapifyCoordinates {
   lat: number;
