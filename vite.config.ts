@@ -8,6 +8,7 @@ export default defineConfig({
     noExternal: ["@skeletonlabs/skeleton"],
   },
   build: {
+    chunkSizeWarningLimit: 1000, // Adjust the limit as needed
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -21,6 +22,5 @@ export default defineConfig({
         },
       },
     },
-    chunkSizeWarningLimit: 1000, // Adjust this limit as needed
   },
 });
