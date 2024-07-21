@@ -1,6 +1,7 @@
 <script lang="ts">
   import { initializeStores } from '@skeletonlabs/skeleton';
   import { onMount } from 'svelte';
+  import '../app.postcss';
 
   onMount(() => {
     initializeStores();

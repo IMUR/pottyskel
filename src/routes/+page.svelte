@@ -10,6 +10,7 @@
   let userLocation: { latitude: number; longitude: number } | null = null;
   let sortedPotties: Potty[] = [];
   let markers: { [key: string]: maplibregl.Marker } = {};
+  let modalStore;
 
   async function fetchPotties() {
     const response = await fetch('/api/potties');
@@ -18,6 +19,7 @@
   }
 
   onMount(async () => {
+    modalStore = getModalStore();
     try {
       potties = await fetchPotties();
       initializeMap();
@@ -103,15 +105,13 @@
   }
 
   function toggleForm() {
-    const modalStore = getModalStore();
     modalStore.open({
       component: Form as unknown as ModalComponent,
-      modalClass: 'max-w-lg',
+      modalClasses: 'max-w-lg',
     });
   }
 
   function closeForm() {
-    const modalStore = getModalStore();
     modalStore.close();
   }
 

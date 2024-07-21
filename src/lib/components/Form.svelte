@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { writable } from 'svelte/store';
+  import { writable, get } from 'svelte/store';
   import { getCoordinates, getAutocompleteSuggestions } from '$lib/utils/geoapify';
   import type { Potty } from '$lib/types';
 
@@ -12,8 +11,8 @@
     pottyRule: '',
     pottyNotes: '',
     pottyType: '',
-    latitude: null,
-    longitude: null
+    latitude: undefined,
+    longitude: undefined
   };
 
   const potty = writable<Partial<Potty>>(initialPotty);
@@ -56,9 +55,9 @@
     <input type="text" name="pottyAddress" on:input={handleInput} bind:value={$potty.pottyAddress} class="input input-bordered w-full" />
     <ul>
       {#each $suggestions as suggestion}
-        <li role="button" tabindex="0" on:click={() => selectSuggestion(suggestion)} on:keydown={(e) => e.key === 'Enter' && selectSuggestion(suggestion)}>
+        <button type="button" tabindex="0" on:click={() => selectSuggestion(suggestion)} on:keydown={(e) => e.key === 'Enter' && selectSuggestion(suggestion)}>
           {suggestion}
-        </li>
+        </button>
       {/each}
     </ul>
   </label>
