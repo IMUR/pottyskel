@@ -7,4 +7,24 @@
   <link rel="stylesheet" href="https://cdn.skypack.dev/maplibre-gl/dist/maplibre-gl.css">
 </svelte:head>
 
+<style>
+  :global(body) {
+    margin: 0;
+    padding: 0;
+  }
+
+  .gradient-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Ensures the overlay doesn't interfere with user interactions */
+    background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.8));
+    z-index: 1; /* Ensure the gradient is behind the list container */
+  }
+</style>
+
 <slot />
+
+<div class="gradient-overlay"></div>

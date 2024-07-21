@@ -1,34 +1,22 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import maplibregl from 'maplibre-gl';
-  import Form from '$lib/components/Form.svelte';
   import type { Potty } from '$lib/types';
-  import { getMapStyleUrl } from '$lib/utils/geoapify';
 
   let potties: Potty[] = [];
-  let showForm = false;
   let map: maplibregl.Map;
   let userLocation: { longitude: number; latitude: number } | null = null;
 
-  async function fetchPotties() {
-    const response = await fetch('/api/potties');
-    if (!response.ok) throw new Error('Failed to fetch potties');
-    return response.json();
-  }
+  const mapTilerApiKey = '52e42fd1727343ddb979120e8c9d473c';
 
-  onMount(async () => {
-    try {
-      potties = await fetchPotties();
-      initializeMap();
-    } catch (error) {
-      console.error('Error fetching potties:', error);
-    }
+  onMount(() => {
+    initializeMap();
   });
 
   function initializeMap() {
     map = new maplibregl.Map({
       container: 'map',
-      style: getMapStyleUrl(),
+      style: `https://api.maptiler.com/maps/streets/style.json?key=${mapTilerApiKey}`,
       center: [0, 0],
       zoom: 12
     });
@@ -59,10 +47,15 @@
   function addMarkers() {
     potties.forEach((potty) => {
       if (isValidCoordinate(potty)) {
-        new maplibregl.Marker({ color: 'red' })
+        const markerElement = document.createElement('div');
+        markerElement.className = 'marker';
+        markerElement.style.cursor = 'pointer';
+
+        const marker = new maplibregl.Marker({ element: markerElement })
           .setLngLat([potty.longitude, potty.latitude])
-          .addTo(map)
-          .getElement().addEventListener('click', () => handleMarkerClick(potty));
+          .addTo(map);
+
+        marker.getElement().addEventListener('click', () => handleMarkerClick(potty));
       } else {
         console.error('Invalid coordinates for potty:', potty);
       }
@@ -70,7 +63,7 @@
   }
 
   function isValidCoordinate(potty: Potty): boolean {
-    return potty.latitude >= -90 && potty.latitude <= 90 && 
+    return potty.latitude >= -90 && potty.latitude <= 90 &&
            potty.longitude >= -180 && potty.longitude <= 180;
   }
 
@@ -78,32 +71,27 @@
     console.log('Potty clicked:', potty);
     map.setCenter([potty.longitude, potty.latitude]);
     map.setZoom(15); // Adjust the zoom level as needed
+    showInfoBubble(potty);
   }
 
-  function toggleForm() {
-    showForm = !showForm;
-  }
-
-  function closeForm() {
-    showForm = false;
-  }
-
-  function handleNewPotty(event: CustomEvent) {
-    const newPotty: Potty = event.detail;
-    potties = [...potties, newPotty];
-    addNewPottyMarker(newPotty);
-    sortPottiesByDistance();
-  }
-
-  function addNewPottyMarker(potty: Potty) {
-    if (isValidCoordinate(potty)) {
-      new maplibregl.Marker({ color: 'red' })
-        .setLngLat([potty.longitude, potty.latitude])
-        .addTo(map)
-        .getElement().addEventListener('click', () => handleMarkerClick(potty));
-    } else {
-      console.error('Invalid coordinates for potty:', potty);
+  function showInfoBubble(potty: Potty) {
+    const existingBubble = document.querySelector('.info-bubble');
+    if (existingBubble) {
+      existingBubble.remove();
     }
+
+    const infoBubble = document.createElement('div');
+    infoBubble.className = 'info-bubble';
+    infoBubble.innerHTML = `
+      <h3>${potty.pottyName}</h3>
+      <p>${potty.pottyAddress}</p>
+      <p>${potty.pottyRule}</p>
+      <p>${potty.pottyNotes}</p>
+    `;
+    document.body.appendChild(infoBubble);
+    const bubbleCoords = map.project([potty.longitude, potty.latitude]);
+    infoBubble.style.left = `${bubbleCoords.x}px`;
+    infoBubble.style.top = `${bubbleCoords.y}px`;
   }
 
   function sortPottiesByDistance() {
@@ -127,133 +115,28 @@
   }
 </script>
 
-<main class="container mx-auto p-4 flex flex-col items-center h-screen relative">
-  <div id="map" class="flex-grow w-full rounded-xl"></div>
-  <button on:click={toggleForm} class="add-potty-button absolute top-20 left-1/2 transform -translate-x-1/2">Add Potty</button>
-  <div class="potty-list-container fixed bottom-0 left-1/2 transform -translate-x-1/2 w-3/4 h-1/4 overflow-scroll flex flex-col items-center bg-gradient-to-t from-transparent to-white">
-    {#each potties as potty}
-      <button on:click={() => handleMarkerClick(potty)} class="potty-button m-2 p-2 w-full text-left">
-        <div class="grid grid-cols-4 gap-3">
-          <div class="font-semibold text-lg text-gray-800">{potty.pottyName}</div>
-          <div class="text-sm text-gray-600">{potty.pottyAddress}</div>
-          <div class="text-sm text-gray-600">{potty.pottyRule}</div>
-          <div class="text-lg text-gray-600">{potty.pottyNotes}</div>
-        </div>
-      </button>
-    {/each}
-  </div>
-  {#if showForm}
-    <div class="form-backdrop fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
-      <div class="form-container p-4 rounded-lg shadow-lg w-96">
-        <Form on:closeForm={closeForm} on:newPotty={handleNewPotty} />
-      </div>
-    </div>
-  {/if}
-</main>
+<div id="map" class="map-container"></div>
 
 <style>
-  main {
-    height: 100vh;
+  .map-container {
+    height: 100%;
+    width: 100%;
   }
 
-  .add-potty-button {
-    background-color: rgba(211, 211, 211, 0.4); /* Light grey with 70% opacity */
-    backdrop-filter: blur(5px); /* Blurred background */
-    border: 2px solid #fff; /* White border */
-    color: #000;
-    padding: 2.5rem 2.5rem;
-    border-radius: 1rem;
-    font-size: 1.2rem;
+  .marker {
+    background-color: red;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
     cursor: pointer;
-    width: 300px; /* Set a fixed width */
-    height: 60px; /* Set a fixed height */
-    text-align: center;
-    line-height: 0px; /* Vertically center text */
   }
 
-  .add-potty-button:hover {
-    background-color: rgba(165, 165, 165, 0.5); /* Slightly less transparent on hover */
-  }
-
-  .potty-list-container {
-    background: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-  }
-
-  .potty-button {
-    height: 90px;
-    background: none;
-    backdrop-filter: blur(5px);
-    border: 2px solid #fff;
-    margin: 2px 0;
-    width: calc(65% - 10px); /* Ensure buttons do not exceed the container */
-    transition: transform 0.3s;
-    overflow: hidden;
-    background-color: rgba(211, 211, 211, 0.8); /* White background with opacity */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    color: #333; /* Text color */
-    text-align: center;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .potty-button:hover {
-    transform: scale(1.01);
-    background-color: rgba(200, 200, 200, 0.9); /* Change background on hover */
-  }
-
-  .potty-button:active {
-    transform: scale(0.95);
-    background-color: rgba(180, 180, 180, 1); /* Change background on active */
-  }
-
-  .potty-button .grid {
-    display: grid;
-    grid-template-columns: 18% 50% 10% 15%;
-    align-items: center;
-    width: 100%;
-    white-space: wrap;
-  }
-
-  .potty-button .grid > div {
-    overflow: auto;
-    text-overflow: initial;
-    white-space: wrap;
-  }
-
-  .form-backdrop {
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
-    backdrop-filter: blur(10px); /* Blur effect */
-  }
-
-  .form-container {
-    animation: fadeIn 0.3s ease-out, scaleIn 0.3s ease-out;
-    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
-    backdrop-filter: blur(10px); /* Blur effect */
-    padding: 2rem;
-    border-radius: 1rem;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes scaleIn {
-    from {
-      transform: scale(0.8);
-    }
-    to {
-      transform: scale(1);
-    }
+  .info-bubble {
+    position: absolute;
+    background-color: white;
+    border: 1px solid black;
+    padding: 10px;
+    z-index: 999;
+    pointer-events: none;
   }
 </style>
