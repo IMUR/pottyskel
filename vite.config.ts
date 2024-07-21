@@ -23,4 +23,11 @@ export default defineConfig({
       },
     },
   },
+  resolve: {
+    alias: {
+      $lib: "/src/lib",
+      $components: "/src/lib/components",
+      $utils: "/src/lib/utils",
+    },
+  },
 });
