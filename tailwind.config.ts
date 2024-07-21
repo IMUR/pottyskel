@@ -3,6 +3,7 @@ import type { Config } from "tailwindcss";
 import forms from "@tailwindcss/forms";
 import typography from "@tailwindcss/typography";
 import { skeleton } from "@skeletonlabs/tw-plugin";
+import { myCustomTheme } from "./src/theme"; // Import your custom theme
 
 export default {
   darkMode: "class",
@@ -17,17 +18,11 @@ export default {
     extend: {},
   },
   plugins: [
-    require("@tailwindcss/forms"),
     forms,
     typography,
     skeleton({
       themes: {
-        preset: [
-          {
-            name: "skeleton",
-            enhancements: true,
-          },
-        ],
+        custom: [myCustomTheme], // Use your custom theme
       },
     }),
   ],
