@@ -5,7 +5,7 @@ import typography from "@tailwindcss/typography";
 import { skeleton } from "@skeletonlabs/tw-plugin";
 import { myCustomTheme } from "./src/theme"; // Import your custom theme
 
-export default {
+const config: Config = {
   darkMode: "class",
   content: [
     "./src/**/*.{html,js,svelte,ts}",
@@ -26,4 +26,6 @@ export default {
       },
     }),
   ],
-} satisfies Config;
+};
+
+export default config;
