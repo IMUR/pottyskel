@@ -1,149 +1,79 @@
 <script lang="ts">
-  import { createEventDispatcher, onMount } from 'svelte';
-  import { addPotty } from '$lib/utils/api';
+  import { onMount } from 'svelte';
+  import { writable } from 'svelte/store';
   import { getCoordinates, getAutocompleteSuggestions } from '$lib/utils/geoapify';
   import type { Potty } from '$lib/types';
 
-  let pottyName: string = '';
-  let pottyAddress: string = '';
-  let pottyRule: string = '';
-  let pottyNotes: string = '';
-  let pottyType: string = '';
-  let autocompleteSuggestions: string[] = [];
-  const dispatch = createEventDispatcher();
+  export let onCloseForm: () => void;
 
-  const submitForm = async () => {
-    try {
-      const coordinates = await getCoordinates(pottyAddress);
-      const newPotty: Potty = {
-        pottyName,
-        pottyAddress,
-        pottyRule,
-        pottyNotes,
-        pottyType,
-        latitude: coordinates.lat,
-        longitude: coordinates.lon,
-      };
-      await addPotty(newPotty);
-      dispatch('refreshPotties');
-      closeForm();
-    } catch (error) {
-      console.error('Error adding potty:', error);
+  const initialPotty: Partial<Potty> = {
+    pottyName: '',
+    pottyAddress: '',
+    pottyRule: '',
+    pottyNotes: '',
+    pottyType: '',
+    latitude: null,
+    longitude: null
+  };
+
+  const potty = writable<Partial<Potty>>(initialPotty);
+  const suggestions = writable<string[]>([]);
+
+  async function handleSubmit(e: Event) {
+    e.preventDefault();
+    const pottyData = get(potty);
+    if (pottyData.pottyAddress) {
+      const coordinates = await getCoordinates(pottyData.pottyAddress);
+      pottyData.latitude = coordinates.lat;
+      pottyData.longitude = coordinates.lon;
     }
-    pottyName = '';
-    pottyAddress = '';
-    pottyRule = '';
-    pottyNotes = '';
-    pottyType = '';
-    autocompleteSuggestions = [];
-  };
+    // Post the potty data to the server or store it locally
+    onCloseForm();
+  }
 
-  const fetchAutocompleteSuggestions = async () => {
-    if (pottyAddress.length > 2) {
-      try {
-        autocompleteSuggestions = await getAutocompleteSuggestions(pottyAddress);
-      } catch (error) {
-        console.error('Error fetching autocomplete suggestions:', error);
-        autocompleteSuggestions = [];
-      }
-    } else {
-      autocompleteSuggestions = [];
+  async function handleInput(e: Event) {
+    const target = e.target as HTMLInputElement;
+    potty.update(p => ({ ...p, [target.name]: target.value }));
+    if (target.name === 'pottyAddress') {
+      const results = await getAutocompleteSuggestions(target.value);
+      suggestions.set(results);
     }
-  };
+  }
 
-  const selectSuggestion = (suggestion: string) => {
-    pottyAddress = suggestion;
-    autocompleteSuggestions = [];
-  };
-
-  const handleClickOutside = (event: MouseEvent) => {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.autocomplete-container')) {
-      autocompleteSuggestions = [];
-    }
-  };
-
-  onMount(() => {
-    document.addEventListener('click', handleClickOutside);
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  });
-
-  const handleKeyDown = (event: KeyboardEvent, suggestion: string) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      selectSuggestion(suggestion);
-    }
-  };
-
-  function closeForm() {
-    dispatch('closeForm');
+  function selectSuggestion(suggestion: string) {
+    potty.update(p => ({ ...p, pottyAddress: suggestion }));
+    suggestions.set([]);
   }
 </script>
 
-<form on:submit|preventDefault={submitForm} class="p-4 bg-white rounded shadow-md text-black">
-  <div class="mb-4">
-    <label for="pottyName" class="block text-gray-700">Potty Name</label>
-    <input id="pottyName" bind:value={pottyName} required class="mt-1 p-2 block w-full border border-gray-300 rounded-md" />
-  </div>
-
-  <div class="mb-4 relative autocomplete-container">
-    <label for="pottyAddress" class="block text-gray-700">Potty Address</label>
-    <input id="pottyAddress" bind:value={pottyAddress} on:input={fetchAutocompleteSuggestions} required class="mt-1 p-2 block w-full border border-gray-300 rounded-md" />
-    {#if autocompleteSuggestions.length > 0}
-      <ul class="absolute bg-white border border-gray-300 w-full mt-1 rounded-md z-10 max-h-48 overflow-y-auto">
-        {#each autocompleteSuggestions as suggestion}
-          <li 
-            on:click={() => selectSuggestion(suggestion)} 
-            on:keydown={(event) => handleKeyDown(event, suggestion)} 
-            tabindex="0" 
-            role="menuitem" 
-            class="p-2 hover:bg-gray-200 cursor-pointer"
-          >
-            {suggestion}
-          </li>
-        {/each}
-      </ul>
-    {/if}
-  </div>
-
-  <div class="mb-4">
-    <label for="pottyRule" class="block text-gray-700">Potty Rule</label>
-    <select id="pottyRule" bind:value={pottyRule} class="mt-1 p-2 block w-full border border-gray-300 rounded-md">
-      <option>Door Code</option>
-      <option>Free Access</option>
-      <option>Ask Staff</option>
-      <option>Call or Text</option>
-      <option>Self Explanatory</option>
-      <option>Physical Key</option>
-    </select>
-  </div>
-
-  <div class="mb-4">
-    <label for="pottyNotes" class="block text-gray-700">Potty Notes</label>
-    <textarea id="pottyNotes" bind:value={pottyNotes} required class="mt-1 p-2 block w-full border border-gray-300 rounded-md"></textarea>
-  </div>
-
-  <div class="mb-4">
-    <label for="pottyType" class="block text-gray-700">Potty Type</label>
-    <select id="pottyType" bind:value={pottyType} class="mt-1 p-2 block w-full border border-gray-300 rounded-md">
-      <option>General</option>
-      <option>Supermarket</option>
-      <option>Hospital</option>
-      <option>Restaurant</option>
-      <option>Retail Store</option>
-      <option>Gas Station</option>
-      <option>Movie Theater</option>
-      <option>Coffee Shop</option>
-      <option>Public Restroom</option>
-      <option>Open Season</option>
-      <option>Mall</option>
-      <option>Hardware Store</option>
-      <option>Pharmacy</option>
-      <option>Parking Structure</option>
-      <option>Hotel</option>
-    </select>
-  </div>
-
-  <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Submit</button>
+<form on:submit={handleSubmit} class="space-y-4">
+  <label>
+    Name
+    <input type="text" name="pottyName" on:input={handleInput} bind:value={$potty.pottyName} class="input input-bordered w-full" />
+  </label>
+  <label>
+    Address
+    <input type="text" name="pottyAddress" on:input={handleInput} bind:value={$potty.pottyAddress} class="input input-bordered w-full" />
+    <ul>
+      {#each $suggestions as suggestion}
+        <li role="button" tabindex="0" on:click={() => selectSuggestion(suggestion)} on:keydown={(e) => e.key === 'Enter' && selectSuggestion(suggestion)}>
+          {suggestion}
+        </li>
+      {/each}
+    </ul>
+  </label>
+  <label>
+    Rule
+    <input type="text" name="pottyRule" on:input={handleInput} bind:value={$potty.pottyRule} class="input input-bordered w-full" />
+  </label>
+  <label>
+    Notes
+    <input type="text" name="pottyNotes" on:input={handleInput} bind:value={$potty.pottyNotes} class="input input-bordered w-full" />
+  </label>
+  <label>
+    Type
+    <input type="text" name="pottyType" on:input={handleInput} bind:value={$potty.pottyType} class="input input-bordered w-full" />
+  </label>
+  <button type="submit" class="btn btn-primary w-full">Submit</button>
+  <button type="button" class="btn w-full" on:click={onCloseForm}>Cancel</button>
 </form>

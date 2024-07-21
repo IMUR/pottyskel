@@ -3,10 +3,11 @@
   import maplibregl from 'maplibre-gl';
   import Form from '$lib/components/Form.svelte';
   import type { Potty } from '$lib/types';
+  import { Modal, getModalStore } from '@skeletonlabs/skeleton';
+  import type { ModalSettings, ModalComponent } from '@skeletonlabs/skeleton';
 
   let potties: Potty[] = [];
-  let showForm = false;
-  let userLocation: { latitude: number, longitude: number } | null = null;
+  let userLocation: { latitude: number; longitude: number } | null = null;
   let sortedPotties: Potty[] = [];
   let markers: { [key: string]: maplibregl.Marker } = {};
 
@@ -67,7 +68,9 @@
         marker.getElement().addEventListener('click', () => {
           new maplibregl.Popup()
             .setLngLat([potty.longitude, potty.latitude])
-            .setHTML(`<strong>${potty.pottyName}</strong><br><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(potty.pottyAddress)}" target="_blank">${potty.pottyAddress}</a><br>${potty.pottyRule}<br>${potty.pottyNotes}`)
+            .setHTML(
+              `<strong>${potty.pottyName}</strong><br><a href="https://www.google.com/maps/search/?api=1&query=${potty.pottyAddress}" target="_blank">${potty.pottyAddress}</a>`
+            )
             .addTo(map);
         });
         markers[potty.pottyName] = marker;
@@ -100,11 +103,16 @@
   }
 
   function toggleForm() {
-    showForm = !showForm;
+    const modalStore = getModalStore();
+    modalStore.open({
+      component: Form as unknown as ModalComponent,
+      modalClass: 'max-w-lg',
+    });
   }
 
   function closeForm() {
-    showForm = false;
+    const modalStore = getModalStore();
+    modalStore.close();
   }
 
   function handleButtonClick(potty: Potty) {
@@ -114,8 +122,7 @@
 
   function centerOnUser() {
     if (userLocation) {
-      map.setCenter([userLocation.longitude, userLocation.latitude]);
-      map.setZoom(12);
+      map.flyTo({ center: [userLocation.longitude, userLocation.latitude], zoom: 12 });
     }
   }
 </script>
@@ -135,16 +142,5 @@
     </div>
     <button on:click={toggleForm} class="absolute top-2 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-md">Add Potty</button>
     <button on:click={centerOnUser} class="absolute top-2 right-2 bg-blue-500 text-white px-4 py-2 rounded-md">Center on User</button>
-    {#if showForm}
-      <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" role="dialog" aria-modal="true" on:click={closeForm} on:keydown={(e) => e.key === 'Escape' && closeForm()}>
-        <div class="bg-white p-4 rounded-lg shadow-lg w-96" role="document" on:click|stopPropagation>
-          <Form on:closeForm={closeForm} />
-        </div>
-      </div>
-    {/if}
   </div>
 </main>
-
-<style>
-  /* Removed unused CSS selectors */
-</style>
