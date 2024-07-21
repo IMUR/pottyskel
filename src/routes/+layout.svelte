@@ -15,10 +15,10 @@
 
   .gradient-overlay {
     position: absolute;
-    top: 0;
+    bottom: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 20%;
     pointer-events: none; /* Ensures the overlay doesn't interfere with user interactions */
     background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0));
     z-index: 1; /* Ensure the gradient is behind the list container */

@@ -122,21 +122,4 @@
     height: 100%;
     width: 100%;
   }
-
-  .marker {
-    background-color: red;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    cursor: pointer;
-  }
-
-  .info-bubble {
-    position: absolute;
-    background-color: white;
-    border: 1px solid black;
-    padding: 10px;
-    z-index: 999;
-    pointer-events: none;
-  }
 </style>

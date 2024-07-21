@@ -117,11 +117,11 @@
 </script>
 
 <main class="relative flex items-center justify-center h-screen">
-  <div class="relative w-full max-w-3xl h-full p-8 bg-gray-100 rounded-lg overflow-hidden">
+  <div class="absolute w-full max-w-3xl h-full p-8 bg-gray-100 rounded-lg overflow-hidden">
     <div id="map" class="absolute inset-0 rounded-lg"></div>
-    <div class="absolute inset-x-0 bottom-0 h-1/4 overflow-y-auto bg-transparent pointer-events-auto">
+    <div class="z-4 absolute inset-x-2 bottom-0 h-1/4 overflow-y-auto bg-transparent pointer-events-auto">
       {#each sortedPotties as potty}
-        <button on:click={() => handleButtonClick(potty)} class="w-full p-2 bg-white text-black bg-opacity-70 hover:bg-opacity-90 rounded-md flex flex-row justify-evenly items-start mb-2">
+        <button on:click={() => handleButtonClick(potty)} class="w-full p-4 bg-white text-black bg-opacity-60 hover:bg-opacity-80 rounded-md flex flex-row justify-evenly items-start mb-2">
           <span class="block font-bold truncate" style="font-size: calc(0.6em + 0.4vw)">{potty.pottyName}</span>
           <span class="block truncate" style="font-size: calc(0.5em + 0.3vw)">{potty.pottyAddress}</span>
           <span class="block truncate" style="font-size: calc(0.5em + 0.3vw)">{potty.pottyRule}</span>
@@ -129,7 +129,7 @@
         </button>
       {/each}
     </div>
-    <button on:click={toggleForm} class="absolute top-2 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-md">Add Potty</button>
+    <button on:click={toggleForm} class="z-4 absolute top-2 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-md">Add Potty</button>
     {#if showForm}
       <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" role="dialog" aria-modal="true" on:click={closeForm} on:keydown={(e) => e.key === 'Escape' && closeForm()}>
         <div class="bg-white p-4 rounded-lg shadow-lg w-96" role="document" on:click|stopPropagation>
@@ -139,18 +139,3 @@
     {/if}
   </div>
 </main>
-
-<style>
-  .map-container {
-    height: 100%;
-    width: 100%;
-    position: relative;
-    border-radius: 0.375rem; /* Tailwind rounded-lg equivalent */
-    overflow: hidden;
-  }
-
-  .maplibregl-ctrl-top-right {
-    top: 10px; /* Adjust position if needed */
-    right: 10px;
-  }
-</style>
