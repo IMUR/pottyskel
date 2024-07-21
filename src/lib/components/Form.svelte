@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { writable, get } from 'svelte/store';
+  import { writable } from 'svelte/store';
   import { getCoordinates, getAutocompleteSuggestions } from '$lib/utils/geoapify';
   import type { Potty } from '$lib/types';
 
@@ -20,7 +20,7 @@
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
-    const pottyData = get(potty);
+    const pottyData = $potty;
     if (pottyData.pottyAddress) {
       const coordinates = await getCoordinates(pottyData.pottyAddress);
       pottyData.latitude = coordinates.lat;
@@ -55,9 +55,9 @@
     <input type="text" name="pottyAddress" on:input={handleInput} bind:value={$potty.pottyAddress} class="input input-bordered w-full" />
     <ul>
       {#each $suggestions as suggestion}
-        <button type="button" tabindex="0" on:click={() => selectSuggestion(suggestion)} on:keydown={(e) => e.key === 'Enter' && selectSuggestion(suggestion)}>
+        <li role="button" tabindex="0" on:click={() => selectSuggestion(suggestion)} on:keydown={(e) => e.key === 'Enter' && selectSuggestion(suggestion)}>
           {suggestion}
-        </button>
+        </li>
       {/each}
     </ul>
   </label>

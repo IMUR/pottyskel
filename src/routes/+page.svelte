@@ -3,14 +3,14 @@
   import maplibregl from 'maplibre-gl';
   import Form from '$lib/components/Form.svelte';
   import type { Potty } from '$lib/types';
-  import { Modal, getModalStore } from '@skeletonlabs/skeleton';
-  import type { ModalSettings, ModalComponent } from '@skeletonlabs/skeleton';
+  import { getModalStore } from '@skeletonlabs/skeleton';
+  import type { ModalSettings, ModalComponent, ModalStoreType } from '@skeletonlabs/skeleton';
 
   let potties: Potty[] = [];
-  let userLocation: { latitude: number; longitude: number } | null = null;
+  let userLocation: { latitude: number; longitude } | null = null;
   let sortedPotties: Potty[] = [];
   let markers: { [key: string]: maplibregl.Marker } = {};
-  let modalStore;
+  let modalStore: ModalStoreType | undefined;
 
   async function fetchPotties() {
     const response = await fetch('/api/potties');
@@ -19,10 +19,10 @@
   }
 
   onMount(async () => {
-    modalStore = getModalStore();
     try {
       potties = await fetchPotties();
       initializeMap();
+      modalStore = getModalStore(); // Initialize modalStore after the component is mounted
     } catch (error) {
       console.error('Error fetching potties:', error);
     }
@@ -105,14 +105,18 @@
   }
 
   function toggleForm() {
-    modalStore.open({
-      component: Form as unknown as ModalComponent,
-      modalClasses: 'max-w-lg',
-    });
+    if (modalStore) {
+      modalStore.open({
+        component: Form as unknown as ModalComponent,
+        modalClasses: 'max-w-lg',
+      });
+    }
   }
 
   function closeForm() {
-    modalStore.close();
+    if (modalStore) {
+      modalStore.close();
+    }
   }
 
   function handleButtonClick(potty: Potty) {
