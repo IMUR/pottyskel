@@ -20,7 +20,7 @@
     width: 100%;
     height: 100%;
     pointer-events: none; /* Ensures the overlay doesn't interfere with user interactions */
-    background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.8));
+    background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0));
     z-index: 1; /* Ensure the gradient is behind the list container */
   }
 </style>

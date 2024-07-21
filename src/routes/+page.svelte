@@ -1,30 +1,46 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import maplibregl from 'maplibre-gl';
+  import Form from '$lib/components/Form.svelte';
   import type { Potty } from '$lib/types';
 
   let potties: Potty[] = [];
-  let map: maplibregl.Map;
-  let userLocation: { longitude: number; latitude: number } | null = null;
+  let showForm = false;
+  let userLocation: { latitude: number, longitude: number } | null = null;
+  let sortedPotties: Potty[] = [];
+  let markers: { [key: string]: maplibregl.Marker } = {};
 
-  const mapTilerApiKey = '52e42fd1727343ddb979120e8c9d473c';
+  async function fetchPotties() {
+    const response = await fetch('/api/potties');
+    if (!response.ok) throw new Error('Failed to fetch potties');
+    return response.json();
+  }
 
-  onMount(() => {
-    initializeMap();
+  onMount(async () => {
+    try {
+      potties = await fetchPotties();
+      initializeMap();
+    } catch (error) {
+      console.error('Error fetching potties:', error);
+    }
   });
+
+  let map: maplibregl.Map;
 
   function initializeMap() {
     map = new maplibregl.Map({
       container: 'map',
-      style: `https://api.maptiler.com/maps/streets/style.json?key=${mapTilerApiKey}`,
+      style: `https://maps.geoapify.com/v1/styles/positron/style.json?apiKey=52e42fd1727343ddb979120e8c9d473c`,
       center: [0, 0],
       zoom: 12
     });
 
     const navControl = new maplibregl.NavigationControl();
     const geolocateControl = new maplibregl.GeolocateControl({
-      positionOptions: { enableHighAccuracy: true },
-      trackUserLocation: true,
+      positionOptions: {
+        enableHighAccuracy: true
+      },
+      trackUserLocation: false,
       showUserLocation: true
     });
 
@@ -33,110 +49,108 @@
 
     map.on('load', () => {
       geolocateControl.trigger();
-      addMarkers();
-    });
 
-    geolocateControl.on('geolocate', (e) => {
-      const { longitude, latitude } = e.coords;
-      userLocation = { longitude, latitude };
-      map.setCenter([longitude, latitude]);
-      sortPottiesByDistance();
-    });
-  }
+      geolocateControl.on('geolocate', (e) => {
+        const { longitude, latitude } = e.coords;
+        userLocation = { latitude, longitude };
+        map.setCenter([longitude, latitude]);
+        new maplibregl.Marker({ color: 'blue' })
+          .setLngLat([longitude, latitude])
+          .addTo(map);
+        sortPottiesByDistance();
+      });
 
-  function addMarkers() {
-    potties.forEach((potty) => {
-      if (isValidCoordinate(potty)) {
-        const markerElement = document.createElement('div');
-        markerElement.className = 'marker';
-        markerElement.style.cursor = 'pointer';
-
-        const marker = new maplibregl.Marker({ element: markerElement })
+      potties.forEach((potty: Potty) => {
+        const marker = new maplibregl.Marker({ color: 'red' })
           .setLngLat([potty.longitude, potty.latitude])
           .addTo(map);
-
-        marker.getElement().addEventListener('click', () => handleMarkerClick(potty));
-      } else {
-        console.error('Invalid coordinates for potty:', potty);
-      }
+        marker.getElement().addEventListener('click', () => {
+          new maplibregl.Popup()
+            .setLngLat([potty.longitude, potty.latitude])
+            .setHTML(`<strong>${potty.pottyName}</strong><br><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(potty.pottyAddress)}" target="_blank">${potty.pottyAddress}</a>`)
+            .addTo(map);
+        });
+        markers[potty.pottyName] = marker;
+      });
     });
-  }
-
-  function isValidCoordinate(potty: Potty): boolean {
-    return potty.latitude >= -90 && potty.latitude <= 90 &&
-           potty.longitude >= -180 && potty.longitude <= 180;
-  }
-
-  function handleMarkerClick(potty: Potty) {
-    console.log('Potty clicked:', potty);
-    map.setCenter([potty.longitude, potty.latitude]);
-    map.setZoom(15); // Adjust the zoom level as needed
-    showInfoBubble(potty);
-  }
-
-  function showInfoBubble(potty: Potty) {
-    const existingBubble = document.querySelector('.info-bubble');
-    if (existingBubble) {
-      existingBubble.remove();
-    }
-
-    const infoBubble = document.createElement('div');
-    infoBubble.className = 'info-bubble';
-    infoBubble.innerHTML = `
-      <h3>${potty.pottyName}</h3>
-      <p>${potty.pottyAddress}</p>
-      <p>${potty.pottyRule}</p>
-      <p>${potty.pottyNotes}</p>
-    `;
-    document.body.appendChild(infoBubble);
-    const bubbleCoords = map.project([potty.longitude, potty.latitude]);
-    infoBubble.style.left = `${bubbleCoords.x}px`;
-    infoBubble.style.top = `${bubbleCoords.y}px`;
   }
 
   function sortPottiesByDistance() {
     if (userLocation) {
-      potties = [...potties].sort((a, b) => {
-        const distanceA = calculateDistance(userLocation!.latitude, userLocation!.longitude, a.latitude, a.longitude);
-        const distanceB = calculateDistance(userLocation!.latitude, userLocation!.longitude, b.latitude, b.longitude);
+      sortedPotties = [...potties].sort((a, b) => {
+        const distanceA = getDistance(userLocation!.latitude, userLocation!.longitude, a.latitude, a.longitude);
+        const distanceB = getDistance(userLocation!.latitude, userLocation!.longitude, b.latitude, b.longitude);
         return distanceA - distanceB;
       });
+    } else {
+      sortedPotties = potties;
     }
   }
 
-  function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371; // Radius of the Earth in kilometers
-    const dLat = (lat2 - lat1) * (Math.PI / 180);
-    const dLon = (lon2 - lon1) * (Math.PI / 180);
+  function getDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const toRad = (value: number): number => (value * Math.PI) / 180;
+    const R = 6371; // km
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
     const a =
-      0.5 - Math.cos(dLat) / 2 +
-      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * (1 - Math.cos(dLon)) / 2;
-    return R * 2 * Math.asin(Math.sqrt(a));
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  function toggleForm() {
+    showForm = !showForm;
+  }
+
+  function closeForm() {
+    showForm = false;
+  }
+
+  function handleButtonClick(potty: Potty) {
+    const bounds = new maplibregl.LngLatBounds()
+      .extend([userLocation!.longitude, userLocation!.latitude])
+      .extend([potty.longitude, potty.latitude]);
+    map.fitBounds(bounds, { padding: 100 });
+    markers[potty.pottyName].getElement().click();
   }
 </script>
 
-<div id="map" class="map-container"></div>
+<main class="relative flex items-center justify-center h-screen">
+  <div class="relative w-full max-w-3xl h-full p-8 bg-gray-100 rounded-lg overflow-hidden">
+    <div id="map" class="absolute inset-0 rounded-lg"></div>
+    <div class="absolute inset-x-0 bottom-0 h-1/4 overflow-y-auto bg-transparent pointer-events-auto">
+      {#each sortedPotties as potty}
+        <button on:click={() => handleButtonClick(potty)} class="w-full p-2 bg-white text-black bg-opacity-70 hover:bg-opacity-90 rounded-md flex flex-row justify-evenly items-start mb-2">
+          <span class="block font-bold truncate" style="font-size: calc(0.6em + 0.4vw)">{potty.pottyName}</span>
+          <span class="block truncate" style="font-size: calc(0.5em + 0.3vw)">{potty.pottyAddress}</span>
+          <span class="block truncate" style="font-size: calc(0.5em + 0.3vw)">{potty.pottyRule}</span>
+          <span class="block truncate" style="font-size: calc(0.5em + 0.3vw)">{potty.pottyNotes}</span>
+        </button>
+      {/each}
+    </div>
+    <button on:click={toggleForm} class="absolute top-2 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-md">Add Potty</button>
+    {#if showForm}
+      <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" role="dialog" aria-modal="true" on:click={closeForm} on:keydown={(e) => e.key === 'Escape' && closeForm()}>
+        <div class="bg-white p-4 rounded-lg shadow-lg w-96" role="document" on:click|stopPropagation>
+          <Form on:closeForm={closeForm} />
+        </div>
+      </div>
+    {/if}
+  </div>
+</main>
 
 <style>
   .map-container {
     height: 100%;
     width: 100%;
+    position: relative;
+    border-radius: 0.375rem; /* Tailwind rounded-lg equivalent */
+    overflow: hidden;
   }
 
-  .marker {
-    background-color: red;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    cursor: pointer;
-  }
-
-  .info-bubble {
-    position: absolute;
-    background-color: white;
-    border: 1px solid black;
-    padding: 10px;
-    z-index: 999;
-    pointer-events: none;
+  .maplibregl-ctrl-top-right {
+    top: 10px; /* Adjust position if needed */
+    right: 10px;
   }
 </style>

@@ -1,5 +1,6 @@
 [
   {
+    "id": 1,
     "pottyName": "pavilions",
     "pottyAddress": "Pavilions, 820 Montana Ave, Santa Monica, CA 90403, United States of America",
     "pottyRule": "Door Code",
@@ -9,6 +10,7 @@
     "longitude": -118.50050190637977
   },
   {
+    "id": 2,
     "pottyName": "Guitar Center",
     "pottyAddress": "Guitar Center, 14209 Ventura Boulevard, Los Angeles, CA 91423, United States of America",
     "pottyRule": "Door Code",
@@ -18,6 +20,7 @@
     "longitude": -118.44234422724307
   },
   {
+    "id": 3,
     "pottyName": "Home",
     "pottyAddress": "314 Mesa Road, Los Angeles, CA 90402, United States of America",
     "pottyRule": "Call or Text",
@@ -27,6 +30,7 @@
     "longitude": -118.51507189024846
   },
   {
+    "id": 4,
     "pottyName": "Home Depot",
     "pottyAddress": "Home Depot Place, Los Angeles, CA 91406, United States of America",
     "pottyRule": "Free Access",
@@ -36,6 +40,7 @@
     "longitude": -118.484982
   },
   {
+    "id": 5,
     "pottyName": "Vons",
     "pottyAddress": "Vons, 1311 Wilshire Boulevard, Santa Monica, CA 90403, United States of America",
     "pottyRule": "Door Code",
@@ -45,6 +50,7 @@
     "longitude": -118.4794544
   },
   {
+    "id": 6,
     "pottyName": "Guitar Center",
     "pottyAddress": "Guitar Center, West Pico Boulevard, Los Angeles, CA 90064, United States of America",
     "pottyRule": "Door Code",
@@ -54,6 +60,7 @@
     "longitude": -118.429643
   },
   {
+    "id": 7,
     "pottyName": "Ace Hardware",
     "pottyAddress": "2020 South Bundy Drive, Los Angeles, CA 90025, United States of America",
     "pottyRule": "Door Code",
