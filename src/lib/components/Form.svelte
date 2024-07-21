@@ -55,6 +55,7 @@
     <input type="text" name="pottyAddress" on:input={handleInput} bind:value={$potty.pottyAddress} class="input input-bordered w-full" />
     <ul>
       {#each $suggestions as suggestion}
+        <!-- svelte-ignore a11y-no-noninteractive-element-to-interactive-role -->
         <li role="button" tabindex="0" on:click={() => selectSuggestion(suggestion)} on:keydown={(e) => e.key === 'Enter' && selectSuggestion(suggestion)}>
           {suggestion}
         </li>
