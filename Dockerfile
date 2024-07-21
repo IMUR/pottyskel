@@ -1,5 +1,5 @@
 # Use the official Node.js image as the base image
-FROM node:18-alpine
+FROM node:16
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -16,8 +16,8 @@ COPY . .
 # Build the SvelteKit application
 RUN npm run build
 
-# Expose the port that the application will run on
+# Expose the port the app runs on
 EXPOSE 3000
 
-# Start the Node.js server
+# Start the application
 CMD ["node", "build"]
