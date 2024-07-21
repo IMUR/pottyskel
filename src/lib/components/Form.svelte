@@ -16,7 +16,6 @@
     try {
       const coordinates = await getCoordinates(pottyAddress);
       const newPotty: Potty = {
-        id: crypto.randomUUID(), // Generate a unique ID
         pottyName,
         pottyAddress,
         pottyRule,
@@ -77,7 +76,7 @@
     }
   };
 
-  export function closeForm() {
+  function closeForm() {
     dispatch('closeForm');
   }
 </script>
@@ -92,14 +91,14 @@
     <label for="pottyAddress" class="block text-gray-700">Potty Address</label>
     <input id="pottyAddress" bind:value={pottyAddress} on:input={fetchAutocompleteSuggestions} required class="mt-1 p-2 block w-full border border-gray-300 rounded-md" />
     {#if autocompleteSuggestions.length > 0}
-      <ul class="absolute bg-white border border-gray-300 w-full mt-1 rounded-md z-10 max-h-48 overflow-y-auto autocomplete-suggestions">
+      <ul class="absolute bg-white border border-gray-300 w-full mt-1 rounded-md z-10 max-h-48 overflow-y-auto">
         {#each autocompleteSuggestions as suggestion}
           <li 
             on:click={() => selectSuggestion(suggestion)} 
             on:keydown={(event) => handleKeyDown(event, suggestion)} 
             tabindex="0" 
             role="menuitem" 
-            class="p-2 hover:bg-gray-200 cursor-pointer autocomplete-suggestion"
+            class="p-2 hover:bg-gray-200 cursor-pointer"
           >
             {suggestion}
           </li>
@@ -147,25 +146,4 @@
   </div>
 
   <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Submit</button>
-  <button type="button" on:click={closeForm} class="bg-red-500 text-white px-4 py-2 rounded-md ml-2">Close</button>
 </form>
-
-<style>
-  .autocomplete-suggestions {
-    position: absolute;
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    width: 100%;
-    max-height: 150px;
-    overflow-y: auto;
-    z-index: 1000;
-  }
-  .autocomplete-suggestion {
-    padding: 8px;
-    cursor: pointer;
-  }
-  .autocomplete-suggestion:hover {
-    background-color: #f0f0f0;
-  }
-</style>

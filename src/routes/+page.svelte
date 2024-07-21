@@ -67,7 +67,7 @@
         marker.getElement().addEventListener('click', () => {
           new maplibregl.Popup()
             .setLngLat([potty.longitude, potty.latitude])
-            .setHTML(`<strong>${potty.pottyName}</strong><br><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(potty.pottyAddress)}" target="_blank">${potty.pottyAddress}</a>`)
+            .setHTML(`<strong>${potty.pottyName}</strong><br><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(potty.pottyAddress)}" target="_blank">${potty.pottyAddress}</a><br>${potty.pottyRule}<br>${potty.pottyNotes}`)
             .addTo(map);
         });
         markers[potty.pottyName] = marker;
@@ -108,20 +108,24 @@
   }
 
   function handleButtonClick(potty: Potty) {
-    const bounds = new maplibregl.LngLatBounds()
-      .extend([userLocation!.longitude, userLocation!.latitude])
-      .extend([potty.longitude, potty.latitude]);
-    map.fitBounds(bounds, { padding: 100 });
+    map.flyTo({ center: [potty.longitude, potty.latitude], zoom: 15 });
     markers[potty.pottyName].getElement().click();
+  }
+
+  function centerOnUser() {
+    if (userLocation) {
+      map.setCenter([userLocation.longitude, userLocation.latitude]);
+      map.setZoom(12);
+    }
   }
 </script>
 
 <main class="relative flex items-center justify-center h-screen">
-  <div class="absolute w-full max-w-3xl h-full p-8 bg-gray-100 rounded-lg overflow-hidden">
+  <div class="relative w-full max-w-3xl h-full p-8 bg-gray-100 rounded-lg overflow-hidden">
     <div id="map" class="absolute inset-0 rounded-lg"></div>
-    <div class="z-4 absolute inset-x-2 bottom-0 h-1/4 overflow-y-auto bg-transparent pointer-events-auto">
+    <div class="absolute inset-x-0 bottom-0 h-1/4 overflow-y-auto bg-transparent">
       {#each sortedPotties as potty}
-        <button on:click={() => handleButtonClick(potty)} class="w-full p-4 bg-white text-black bg-opacity-60 hover:bg-opacity-80 rounded-md flex flex-row justify-evenly items-start mb-2">
+        <button on:click={() => handleButtonClick(potty)} class="w-full p-2 bg-white text-black bg-opacity-70 hover:bg-opacity-90 rounded-md flex flex-row justify-evenly items-start mb-2">
           <span class="block font-bold truncate" style="font-size: calc(0.6em + 0.4vw)">{potty.pottyName}</span>
           <span class="block truncate" style="font-size: calc(0.5em + 0.3vw)">{potty.pottyAddress}</span>
           <span class="block truncate" style="font-size: calc(0.5em + 0.3vw)">{potty.pottyRule}</span>
@@ -129,7 +133,8 @@
         </button>
       {/each}
     </div>
-    <button on:click={toggleForm} class="z-4 absolute top-2 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-md">Add Potty</button>
+    <button on:click={toggleForm} class="absolute top-2 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-md">Add Potty</button>
+    <button on:click={centerOnUser} class="absolute top-2 right-2 bg-blue-500 text-white px-4 py-2 rounded-md">Center on User</button>
     {#if showForm}
       <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" role="dialog" aria-modal="true" on:click={closeForm} on:keydown={(e) => e.key === 'Escape' && closeForm()}>
         <div class="bg-white p-4 rounded-lg shadow-lg w-96" role="document" on:click|stopPropagation>
@@ -139,3 +144,7 @@
     {/if}
   </div>
 </main>
+
+<style>
+  /* Removed unused CSS selectors */
+</style>
