@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { writable } from 'svelte/store';
+  import { onMount, } from 'svelte';
+  import { writable, get } from 'svelte/store';
   import { getCoordinates, getAutocompleteSuggestions } from '$lib/utils/geoapify';
   import type { Potty } from '$lib/types';
 
@@ -11,8 +12,8 @@
     pottyRule: '',
     pottyNotes: '',
     pottyType: '',
-    latitude: undefined,
-    longitude: undefined
+    latitude: undefined, // Change null to undefined
+    longitude: undefined, // Change null to undefined
   };
 
   const potty = writable<Partial<Potty>>(initialPotty);
@@ -20,7 +21,7 @@
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
-    const pottyData = $potty;
+    const pottyData = get(potty);
     if (pottyData.pottyAddress) {
       const coordinates = await getCoordinates(pottyData.pottyAddress);
       pottyData.latitude = coordinates.lat;
@@ -55,8 +56,8 @@
     <input type="text" name="pottyAddress" on:input={handleInput} bind:value={$potty.pottyAddress} class="input input-bordered w-full" />
     <ul>
       {#each $suggestions as suggestion}
-        <!-- svelte-ignore a11y-no-noninteractive-element-to-interactive-role -->
-        <li role="button" tabindex="0" on:click={() => selectSuggestion(suggestion)} on:keydown={(e) => e.key === 'Enter' && selectSuggestion(suggestion)}>
+        <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+        <li on:click={() => selectSuggestion(suggestion)} on:keydown={(e) => e.key === 'Enter' && selectSuggestion(suggestion)}>
           {suggestion}
         </li>
       {/each}

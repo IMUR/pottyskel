@@ -3,14 +3,13 @@
   import maplibregl from 'maplibre-gl';
   import Form from '$lib/components/Form.svelte';
   import type { Potty } from '$lib/types';
-  import { getModalStore } from '@skeletonlabs/skeleton';
-  import type { ModalSettings, ModalComponent, ModalStore } from '@skeletonlabs/skeleton';
+  import { getModalStore, type ModalSettings, type ModalComponent, type ModalStore } from '@skeletonlabs/skeleton'; // Correct import
 
   let potties: Potty[] = [];
   let userLocation: { latitude: number; longitude: number } | null = null;
   let sortedPotties: Potty[] = [];
   let markers: { [key: string]: maplibregl.Marker } = {};
-  let modalStore: ModalStore | undefined;
+  let modalStore: ModalStore | undefined; // Correct type
 
   async function fetchPotties() {
     const response = await fetch('/api/potties');
@@ -107,8 +106,8 @@
   function toggleForm() {
     if (modalStore) {
       modalStore.trigger({
-        type: 'component',
         component: Form as unknown as ModalComponent,
+        type: 'component', // Add the type property
         modalClasses: 'max-w-lg',
       });
     }
