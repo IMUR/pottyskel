@@ -1,5 +1,5 @@
 {
-  "extends": "@tsconfig/svelte/tsconfig.json",
+  "extends": "./.svelte-kit/tsconfig.json",
   "compilerOptions": {
     "lib": ["DOM", "ES2017", "WebWorker"],
     "moduleResolution": "node",
@@ -12,13 +12,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
-    "types": ["svelte"],
-    "baseUrl": ".",
-    "paths": {
-      "$lib": ["src/lib"],
-      "$components": ["src/lib/components"],
-      "$utils": ["src/lib/utils"]
-    }
+    "types": ["svelte"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "public"]

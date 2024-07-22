@@ -1,6 +1,5 @@
 import { defineConfig } from "vite";
 import { sveltekit } from "@sveltejs/kit/vite";
-import sveltePreprocess from "svelte-preprocess";
 
 export default defineConfig({
   plugins: [sveltekit()],
@@ -8,7 +7,7 @@ export default defineConfig({
     noExternal: ["@skeletonlabs/skeleton"],
   },
   build: {
-    chunkSizeWarningLimit: 1000, // Adjust the limit as needed
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -21,13 +20,6 @@ export default defineConfig({
           }
         },
       },
-    },
-  },
-  resolve: {
-    alias: {
-      $lib: "/src/lib",
-      $components: "/src/lib/components",
-      $utils: "/src/lib/utils",
     },
   },
 });
