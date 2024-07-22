@@ -55,7 +55,7 @@
     <input type="text" name="pottyAddress" on:input={handleInput} bind:value={$potty.pottyAddress} class="input input-bordered w-full" />
     <ul>
       {#each $suggestions as suggestion}
-        <li role="option" aria-selected="false" on:click={() => selectSuggestion(suggestion)}>{suggestion}</li>
+        <button type="button" role="option" aria-selected="false" on:click={() => selectSuggestion(suggestion)}>{suggestion}</button>
       {/each}
     </ul>
   </label>

@@ -12,7 +12,8 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
-    "types": ["svelte"]
+    "types": ["svelte"],
+    "strict": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "public"]
