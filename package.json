@@ -8,7 +8,7 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-     "clean": "rm -rf build .svelte-kit"
+    "clean": "rm -rf build .svelte-kit"
   },
   "devDependencies": {
     "@skeletonlabs/skeleton": "^2.10.2",
@@ -35,6 +35,7 @@
     "@floating-ui/dom": "^1.6.7",
     "@geoapify/geocoder-autocomplete": "^2.0.1",
     "@tsconfig/svelte": "^5.0.4",
+    "dotenv": "^16.4.5",
     "glob": "^11.0.0",
     "maplibre-gl": "^4.5.0",
     "rimraf": "^6.0.1",
