@@ -1,15 +1,15 @@
-version: '3'
+version: '3.8'
 services:
   app:
     build: .
     ports:
       - "3000:3000"
-    volumes:
-      - .:/app
     environment:
+      - PORT=${PORT}
       - API_KEY=${API_KEY}
-      - ANOTHER_VARIABLE=${ANOTHER_VARIABLE}
-    command: npm run dev
+    command: npm run preview
+    env_file:
+      - .env
 
   traefik:
     image: "traefik:v2.4"
